@@ -184,6 +184,58 @@ export const Welcome = async ({ payload, user }: Props) => {
         </a>
       </div>
 
+      {process.env.DEMO_RESET !== 'off' && u?.role !== 'admin' && (
+        <div className="ch-tour">
+          <p className="ch-tour__title">Demo tour · try these three things</p>
+          <ol>
+            {isLeader ? (
+              <>
+                <li>
+                  <a href={`${admin}/collections/events/create`}>Add a Cedar Youth event</a> and press Save. It won’t go live
+                  yet: it waits for the church office.
+                </li>
+                <li>
+                  <a href={myMinistry ? `${admin}/collections/ministries/${myMinistry.id}` : `${admin}/collections/ministries`}>
+                    Update Cedar Youth
+                  </a>
+                  . Change the meeting time, save, and check the Ministries section on the{' '}
+                  <a href="/#ministries" target="_blank" rel="noopener">
+                    website
+                  </a>
+                  .
+                </li>
+                <li>
+                  <a href={`${admin}/logout`}>Sign out</a> and sign back in as Tasha (<code>office@cedarhill.demo</code>) to
+                  approve your event.
+                </li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <a href={`${admin}/globals/church-info`}>Change a service time</a>, press Save, then{' '}
+                  <a href="/" target="_blank" rel="noopener">
+                    view the website
+                  </a>
+                  . It’s already updated.
+                </li>
+                <li>
+                  <a href={`${admin}/collections/events?where[approval][equals]=pending`}>Approve Marcus’s Youth Lock-In</a>.
+                  Open it, switch Approval to Live and save. It appears under Coming up.
+                </li>
+                <li>
+                  Send a{' '}
+                  <a href="/prayer" target="_blank" rel="noopener">
+                    prayer request
+                  </a>{' '}
+                  from the website, then find it in the <a href={`${admin}/collections/inbox`}>Inbox</a>.
+                </li>
+              </>
+            )}
+          </ol>
+          <p className="ch-tour__fine">This is a shared demo. Everything resets every night.</p>
+        </div>
+      )}
+
       <div className="ch-tiles">
         {tiles.map((t) => (
           <a key={t.title} href={t.href} className={`ch-tile${t.tone ? ` ch-tile--${t.tone}` : ''}`}>

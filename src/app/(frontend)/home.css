@@ -995,6 +995,18 @@
 .foot__demo b {
   color: var(--peach);
 }
+.foot__demo a {
+  color: #fff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.foot__demo a:hover {
+  color: var(--peach);
+}
+.foot__credit {
+  padding-top: 6px !important;
+}
 
 @keyframes rise {
   from {

@@ -539,7 +539,14 @@ export default function Home({ data }: { data: HomeData }) {
             </nav>
           </div>
           <p className="foot__demo">
-            Demo site for <b>EZEdit Mission</b>. Cedar Hill Church and everyone named here are fictional. Photos from Unsplash.
+            Demo site for <b>EZEdit Mission</b>. Cedar Hill Church and everyone named here are fictional. Photos from Unsplash.{' '}
+            <a href="/admin">Try the staff dashboard</a>
+          </p>
+          <p className="foot__demo foot__credit">
+            Designed and built by{' '}
+            <a href="https://mindmap.veronicaessex.com/" target="_blank" rel="noopener">
+              Veronica Essex
+            </a>
           </p>
         </div>
       </footer>

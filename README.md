@@ -50,6 +50,8 @@ The seed also has Marcus post a **Youth Lock-In** so there's something waiting i
 | Inbox | Every form submission in plain sentences; New → Following up → Done |
 | Recent Changes | One log of every change: who, what, live or waiting. Email updates will write here too |
 | Reset demo | Pastor / Admin only, at the bottom of the dashboard home. Puts all starter content back, clears the inbox and log, and resets the Tasha and Marcus logins to `CedarHill2026`. Accounts you added are kept. Set `DEMO_RESET=off` to hide it on a real church site |
+| Nightly reset | Vercel runs `/cron/reset-demo` every night (see `vercel.json`). Needs a `CRON_SECRET` environment variable in Vercel |
+| Demo help | The login screen lists the two demo logins, and Tasha and Marcus get a 3-step "Demo tour" on the dashboard home |
 
 ---
 
