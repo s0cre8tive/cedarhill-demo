@@ -49,6 +49,7 @@ The seed also has Marcus post a **Youth Lock-In** so there's something waiting i
 | Leaders | "Our pastors" (monogram shows if there's no photo) |
 | Inbox | Every form submission in plain sentences; New → Following up → Done |
 | Recent Changes | One log of every change: who, what, live or waiting. Email updates will write here too |
+| Reset demo | Pastor / Admin only, at the bottom of the dashboard home. Puts all starter content back, clears the inbox and log, and resets the Tasha and Marcus logins to `CedarHill2026`. Accounts you added are kept. Set `DEMO_RESET=off` to hide it on a real church site |
 
 ---
 
@@ -66,6 +67,8 @@ On first run the site downloads 12 free Unsplash photos into **Photos**, so staf
 If a download fails (no internet), the page loads that photo straight from Unsplash instead.
 Credits are saved on each photo: Terren Hurst, Christian Harb, Priscilla Du Preez, Sara Cottle, Jon Tyson,
 Edward Cisneros, Joel Muniz, Elianna Gill, Andrik Langfield, Hannah Busing and Aaron Burden on Unsplash.
+
+The pastor portraits and the logo are in `public/demo` and `public/cedarhill-logo.png`.
 
 ---
 

@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { loadPortrait } from './portraits'
 
 /**
  * Cedar Hill Church — a fictional mid-size church used to demo EZEdit Mission.
@@ -182,7 +183,10 @@ export async function loadStarterContent(payload: Payload) {
     { name: 'Rev. Daniel Okafor', title: 'Associate Pastor', bio: 'Daniel oversees small groups and care ministries. If you’re new, he’s probably the one handing you a coffee and asking your name.' },
     { name: 'Marcus Reed', title: 'Youth Pastor', bio: 'Marcus leads Cedar Youth on Wednesday nights and runs the best lock-in in Maple Grove.' },
   ]
-  for (const [i, l] of leaders.entries()) await payload.create({ collection: 'leaders', context: ctx, data: { ...l, order: i + 1 } })
+  for (const [i, l] of leaders.entries()) {
+    const photo = await loadPortrait(payload, l.name)
+    await payload.create({ collection: 'leaders', context: ctx, data: { ...l, photo, order: i + 1 } as never })
+  }
 
   const events = [
     { title: 'Fall Festival', date: upcoming('2026-11-14'), time: '12:00 – 4:00 PM', location: 'Fellowship Hall', details: 'Free food, games for the kids, a bounce house and a chili cook-off. Everyone is welcome — bring a neighbor.', flyer: ph.laughing, ministry: 'Neighbors Outreach' },

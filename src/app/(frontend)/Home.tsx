@@ -138,7 +138,7 @@ export default function Home({ data }: { data: HomeData }) {
       <header className={`nav${solid ? ' nav--solid' : ''}`}>
         <div className="nav__in">
           <a className="brand" href="/" aria-label="Cedar Hill Church home">
-            <img src="/cedarhill-logo.svg" alt="" width={44} height={44} />
+            <img src="/cedarhill-logo.png" alt="" width={44} height={44} />
             <span>Cedar Hill</span>
           </a>
           <nav className="nav__links" aria-label="Primary">
@@ -502,7 +502,7 @@ export default function Home({ data }: { data: HomeData }) {
           <div className="foot__grid">
             <div className="foot__brand">
               <a className="brand" href="/">
-                <img src="/cedarhill-logo.svg" alt="" width={56} height={56} />
+                <img src="/cedarhill-logo.png" alt="" width={56} height={56} />
                 <span>Cedar Hill Church</span>
               </a>
               <p>

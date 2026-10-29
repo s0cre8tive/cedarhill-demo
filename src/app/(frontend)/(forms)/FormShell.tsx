@@ -34,7 +34,7 @@ export function FormShell({ decor, kicker, title, lede, extra, aside, children }
         {decor === 'rays' && <div className="rays" aria-hidden="true" />}
         <div className="nav">
           <a href="/" className="brand" aria-label="Cedar Hill Church home">
-            <img className="emblem" src="/cedarhill-logo.svg" alt="" />
+            <img className="emblem" src="/cedarhill-logo.png" alt="" />
             <span className="brand-mark">Cedar Hill</span>
           </a>
           <a className="back" href="/">

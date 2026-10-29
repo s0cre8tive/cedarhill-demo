@@ -1,5 +1,6 @@
 import type { Payload, TypedUser } from 'payload'
 import React from 'react'
+import { ResetDemo } from './ResetDemo'
 
 type Props = { payload: Payload; user?: TypedUser | null }
 type U = { name?: string; role?: string; ministry?: unknown } | null
@@ -228,6 +229,8 @@ export const Welcome = async ({ payload, user }: Props) => {
           )}
         </div>
       )}
+
+      {u?.role === 'admin' && process.env.DEMO_RESET !== 'off' && <ResetDemo />}
 
       <p className="ch-hint">
         Tip: changes show on the website as soon as you press <b>Save</b>

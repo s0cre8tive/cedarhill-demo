@@ -18,6 +18,7 @@ import { Changes } from './collections/Changes'
 import { ChurchInfo } from './globals/ChurchInfo'
 import { Announcement } from './globals/Announcement'
 import { firstRun } from './lib/firstRun'
+import { resetDemo } from './lib/demo'
 import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
@@ -40,7 +41,7 @@ export default buildConfig({
     avatar: 'default',
     meta: {
       titleSuffix: ' · Cedar Hill Dashboard',
-      icons: [{ rel: 'icon', type: 'image/svg+xml', url: '/cedarhill-logo.svg' }],
+      icons: [{ rel: 'icon', type: 'image/png', url: '/favicon.png' }],
       robots: 'noindex, nofollow',
     },
     components: {
@@ -74,6 +75,25 @@ export default buildConfig({
     : sqliteAdapter({ client: { url: dbUrl } }),
   sharp,
   onInit: firstRun,
+  endpoints: [
+    {
+      // POST /api/reset-demo — Pastor / Admin only. Turn off with DEMO_RESET=off.
+      path: '/reset-demo',
+      method: 'post',
+      handler: async (req) => {
+        const u = req.user as unknown as { role?: string; name?: string; email?: string } | null
+        if (process.env.DEMO_RESET === 'off') return Response.json({ error: 'Reset is turned off on this site.' }, { status: 403 })
+        if (!u || u.role !== 'admin') return Response.json({ error: 'Only a Pastor / Admin can reset the demo.' }, { status: 403 })
+        try {
+          await resetDemo(req.payload, u.name || u.email || 'Admin')
+          return Response.json({ ok: true })
+        } catch (err) {
+          req.payload.logger.error({ err, msg: 'Demo reset failed' })
+          return Response.json({ error: 'The reset didn’t finish. Try again in a minute.' }, { status: 500 })
+        }
+      },
+    },
+  ],
   plugins: [
     // Online photo storage. Turns on automatically when Vercel Blob is connected.
     vercelBlobStorage({

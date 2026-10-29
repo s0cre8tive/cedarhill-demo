@@ -855,6 +855,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 30%;
 }
 .pastor__ph--1 {
   background: linear-gradient(160deg, #5b3fd9, #2a2350);

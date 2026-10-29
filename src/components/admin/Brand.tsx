@@ -3,7 +3,7 @@ import React from 'react'
 /** Login-screen logo */
 export const Logo = () => (
   <div className="ch-logo">
-    <img src="/cedarhill-logo.svg" alt="" width={72} height={72} />
+    <img src="/cedarhill-logo.png" alt="" width={72} height={72} />
     <div>
       <strong>Cedar Hill</strong>
       <span>Website Dashboard</span>
@@ -13,7 +13,7 @@ export const Logo = () => (
 
 /** Small icon in the top-left of the dashboard */
 export const Icon = () => (
-  <img src="/cedarhill-logo.svg" alt="Cedar Hill" width={30} height={30} style={{ display: 'block' }} />
+  <img src="/cedarhill-logo.png" alt="Cedar Hill" width={30} height={30} style={{ display: 'block' }} />
 )
 
 /** Extra links at the bottom of the side menu */
