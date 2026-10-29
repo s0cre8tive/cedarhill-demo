@@ -1,0 +1,86 @@
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
+import { postgresAdapter } from '@payloadcms/db-postgres'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import path from 'path'
+import { buildConfig } from 'payload'
+import { fileURLToPath } from 'url'
+import sharp from 'sharp'
+
+import { Users } from './collections/Users'
+import { Media } from './collections/Media'
+import { Events } from './collections/Events'
+import { Sermons } from './collections/Sermons'
+import { Leaders } from './collections/Leaders'
+import { Inbox } from './collections/Inbox'
+import { Ministries } from './collections/Ministries'
+import { Changes } from './collections/Changes'
+import { ChurchInfo } from './globals/ChurchInfo'
+import { Announcement } from './globals/Announcement'
+import { firstRun } from './lib/firstRun'
+import { migrations } from './migrations'
+
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
+
+const serverURL = process.env.NEXT_PUBLIC_SERVER_URL || ''
+const dbUrl = process.env.DATABASE_URL || ''
+// Online: Postgres (e.g. Neon). On your computer: a simple SQLite file.
+const usePostgres = /^postgres(ql)?:\/\//.test(dbUrl)
+
+export default buildConfig({
+  serverURL,
+  // Only the site itself may talk to the API from a browser.
+  cors: serverURL ? [serverURL] : [],
+  csrf: serverURL ? [serverURL] : [],
+  graphQL: { disable: true },
+  admin: {
+    user: Users.slug,
+    theme: 'light',
+    avatar: 'default',
+    meta: {
+      titleSuffix: ' · Cedar Hill Dashboard',
+      icons: [{ rel: 'icon', type: 'image/svg+xml', url: '/cedarhill-logo.svg' }],
+      robots: 'noindex, nofollow',
+    },
+    components: {
+      graphics: {
+        Logo: '@/components/admin/Brand#Logo',
+        Icon: '@/components/admin/Brand#Icon',
+      },
+      beforeDashboard: ['@/components/admin/Welcome#Welcome'],
+      afterNavLinks: ['@/components/admin/Brand#ViewSiteLink'],
+      afterLogin: ['@/components/admin/Brand#LoginHelp'],
+    },
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
+  },
+  // Nav order = the order staff see in the side menu.
+  globals: [Announcement, ChurchInfo],
+  collections: [Events, Ministries, Sermons, Media, Leaders, Inbox, Changes, Users],
+  editor: lexicalEditor(),
+  secret: process.env.PAYLOAD_SECRET || '',
+  typescript: {
+    outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  db: usePostgres
+    ? postgresAdapter({
+        pool: { connectionString: dbUrl },
+        migrationDir: path.resolve(dirname, 'migrations'),
+        // Sets up / updates the database tables automatically when the live site starts.
+        prodMigrations: migrations,
+      })
+    : sqliteAdapter({ client: { url: dbUrl } }),
+  sharp,
+  onInit: firstRun,
+  plugins: [
+    // Online photo storage. Turns on automatically when Vercel Blob is connected.
+    vercelBlobStorage({
+      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      clientUploads: true, // lets staff upload big phone photos
+    }),
+  ],
+})
