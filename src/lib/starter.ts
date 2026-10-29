@@ -3,7 +3,7 @@ import { loadPortrait } from './portraits'
 
 /**
  * Cedar Hill Church — a fictional mid-size church used to demo EZEdit Mission.
- * Names match the EZEdit Mission case study (Pastor Renee Walker, Marcus in Youth).
+ * Names match the EZEdit Mission case study (Pastors Jacob & Renee Walker, Marcus in Youth).
  */
 
 /** Free photos from Unsplash (Unsplash License). Downloaded into Photos on first run. */
@@ -179,7 +179,7 @@ export async function loadStarterContent(payload: Payload) {
   }
 
   const leaders = [
-    { name: 'Pastor Renee Walker', title: 'Lead Pastor', bio: 'Pastor Renee has led Cedar Hill for twelve years. She loves a full fellowship hall, a long walk with her husband, Curtis, and a sermon that sends people out ready to serve their neighbors.' },
+    { name: 'Pastors Jacob & Renee Walker', title: 'Lead Pastors', bio: 'Jacob and Renee have led Cedar Hill together for twelve years. They love a full fellowship hall, a long walk after Sunday dinner, and a sermon that sends people out ready to serve their neighbors.' },
     { name: 'Rev. Daniel Okafor', title: 'Associate Pastor', bio: 'Daniel oversees small groups and care ministries. If you’re new, he’s probably the one handing you a coffee and asking your name.' },
     { name: 'Marcus Reed', title: 'Youth Pastor', bio: 'Marcus leads Cedar Youth on Wednesday nights and runs the best lock-in in Maple Grove.' },
   ]

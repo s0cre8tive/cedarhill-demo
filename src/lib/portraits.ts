@@ -4,7 +4,10 @@ import path from 'path'
 
 /** Portraits live in /public/demo and are copied into Photos when content loads. */
 export const PORTRAITS: Record<string, { file: string; alt: string }> = {
-  'Pastor Renee Walker': { file: 'renee-walker.jpg', alt: 'Pastor Renee Walker smiling, wearing a black blazer' },
+  'Pastors Jacob & Renee Walker': {
+    file: 'jacob-renee-walker.jpg',
+    alt: 'Pastors Jacob and Renee Walker standing together, both in black, with a cross on the wall behind them',
+  },
   'Rev. Daniel Okafor': { file: 'daniel-okafor.jpg', alt: 'Rev. Daniel Okafor smiling, wearing a navy suit' },
   'Marcus Reed': { file: 'marcus-reed.jpg', alt: 'Marcus Reed smiling, wearing a black jacket' },
 }
