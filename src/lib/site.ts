@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import type { Media } from '@/payload-types'
 import { STOCK, stockUrl, type StockKey } from './starter'
+import { PORTRAITS } from './portraits'
 
 export type Photo = { url: string; alt: string; caption?: string | null }
 export type Service = { name: string; day?: string | null; time: string; note?: string | null }
@@ -157,7 +158,10 @@ export async function getHomeData() {
       name: l.name,
       title: l.title || '',
       bio: l.bio || '',
-      photo: photo(l.photo, 'card'),
+      // Demo pastors fall back to their built-in portrait until a photo is uploaded.
+      photo:
+        photo(l.photo, 'card') ??
+        (PORTRAITS[l.name] ? { url: `/demo/${PORTRAITS[l.name].file}`, alt: PORTRAITS[l.name].alt } : null),
     })),
     ministries: ministries.docs.map((m) => ({
       id: String(m.id),
