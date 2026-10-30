@@ -47,3 +47,11 @@ export async function loadPortrait(payload: Payload, name: string) {
   })
   return doc.id
 }
+
+const norm = (n: string) => n.toLowerCase().replace(/&/g, ' and ').replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim()
+
+/** Finds a built-in portrait even if the name was retyped (e.g. "and" instead of "&"). */
+export function portraitFor(name: string) {
+  const key = Object.keys(PORTRAITS).find((k) => norm(k) === norm(name))
+  return key ? PORTRAITS[key] : undefined
+}
