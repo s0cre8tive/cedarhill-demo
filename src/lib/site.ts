@@ -3,6 +3,7 @@ import config from '@payload-config'
 import type { Media } from '@/payload-types'
 import { STOCK, stockUrl, type StockKey } from './starter'
 import { PORTRAITS } from './portraits'
+import { LEAD_PASTORS } from './starter'
 
 export type Photo = { url: string; alt: string; caption?: string | null }
 export type Service = { name: string; day?: string | null; time: string; note?: string | null }
@@ -19,7 +20,11 @@ export type SiteInfo = {
   mapLink: string
 }
 
-export type Announcement = { message: string; linkText?: string | null; linkUrl?: string | null } | null
+export type Announcement = {
+  message: string
+  linkText?: string | null
+  linkUrl?: string | null
+} | null
 
 const FALLBACK: SiteInfo = {
   services: [{ name: 'Sunday Worship', day: 'Sunday', time: '10:30 AM', note: '' }],
@@ -42,7 +47,11 @@ export const photo = (m: unknown, size: 'card' | 'large' = 'large'): Photo | nul
 }
 
 /** Used only when nobody has uploaded a photo for that spot yet. */
-const stock = (key: StockKey, w = 2000, caption?: string): Photo => ({ url: stockUrl(key, w), alt: STOCK[key].alt, caption })
+const stock = (key: StockKey, w = 2000, caption?: string): Photo => ({
+  url: stockUrl(key, w),
+  alt: STOCK[key].alt,
+  caption,
+})
 
 export async function getPayloadClient() {
   return getPayload({ config })
@@ -75,9 +84,13 @@ export async function getSiteInfo(): Promise<{ info: SiteInfo; announcement: Ann
     mapLink: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${street} ${cityLine}`)}`,
   }
 
-  const expired = an.hideAfter ? new Date(an.hideAfter).setHours(23, 59, 59, 999) < Date.now() : false
+  const expired = an.hideAfter
+    ? new Date(an.hideAfter).setHours(23, 59, 59, 999) < Date.now()
+    : false
   const announcement: Announcement =
-    an.show && an.message && !expired ? { message: an.message, linkText: an.linkText, linkUrl: an.linkUrl } : null
+    an.show && an.message && !expired
+      ? { message: an.message, linkText: an.linkText, linkUrl: an.linkUrl }
+      : null
 
   return { info, announcement }
 }
@@ -100,7 +113,12 @@ export async function getHomeData() {
     getSiteInfo(),
     payload.find({
       collection: 'events',
-      where: { and: [{ date: { greater_than_equal: today.toISOString() } }, { approval: { not_equals: 'pending' } }] },
+      where: {
+        and: [
+          { date: { greater_than_equal: today.toISOString() } },
+          { approval: { not_equals: 'pending' } },
+        ],
+      },
       sort: 'date',
       limit: 6,
       depth: 2,
@@ -118,7 +136,10 @@ export async function getHomeData() {
   ])
 
   const spot = (s: string) => photo(photos.docs.find((p) => p.spot === s))
-  const gallery = photos.docs.filter((p) => p.spot === 'gallery').slice(0, 3).map((p) => photo(p, 'large'))
+  const gallery = photos.docs
+    .filter((p) => p.spot === 'gallery')
+    .slice(0, 3)
+    .map((p) => photo(p, 'large'))
   const galleryFallback = [
     stock('congregation', 1600, 'Sunday mornings at Cedar Hill'),
     stock('laughing', 1600, 'Coffee after service'),
@@ -153,16 +174,23 @@ export async function getHomeData() {
       scripture: s.scripture || '',
       summary: s.summary || '',
     })),
-    leaders: leaders.docs.map((l) => ({
-      id: String(l.id),
-      name: l.name,
-      title: l.title || '',
-      bio: l.bio || '',
-      // Demo pastors fall back to their built-in portrait until a photo is uploaded.
-      photo:
-        photo(l.photo, 'card') ??
-        (PORTRAITS[l.name] ? { url: `/demo/${PORTRAITS[l.name].file}`, alt: PORTRAITS[l.name].alt } : null),
-    })),
+    leaders: leaders.docs.map((raw) => {
+      // Older demos saved the lead pastor as "Pastor Renee Walker". Show the current version instead.
+      const legacy = raw.name === 'Pastor Renee Walker'
+      const l = legacy ? { ...raw, ...LEAD_PASTORS, photo: null } : raw
+      return {
+        id: String(l.id),
+        name: l.name,
+        title: l.title || '',
+        bio: l.bio || '',
+        // Demo pastors fall back to their built-in portrait until a photo is uploaded.
+        photo:
+          photo(l.photo, 'card') ??
+          (PORTRAITS[l.name]
+            ? { url: `/demo/${PORTRAITS[l.name].file}`, alt: PORTRAITS[l.name].alt }
+            : null),
+      }
+    }),
     ministries: ministries.docs.map((m) => ({
       id: String(m.id),
       name: m.name,
@@ -170,13 +198,18 @@ export async function getHomeData() {
       meets: m.meets || '',
       about: m.about || '',
       leaderName: m.leaderName || '',
-      photo: photo(m.photo, 'card') ?? (MINISTRY_STOCK[m.name] ? stock(MINISTRY_STOCK[m.name], 900) : null),
+      photo:
+        photo(m.photo, 'card') ??
+        (MINISTRY_STOCK[m.name] ? stock(MINISTRY_STOCK[m.name], 900) : null),
     })),
     photos: {
       hero: spot('hero') ?? stock('hero'),
       // Header slideshow: newest 3 "hero" photos, topped up with stock photos.
       heroes: [
-        ...photos.docs.filter((p) => p.spot === 'hero').slice(0, 3).map((p) => photo(p, 'large')),
+        ...photos.docs
+          .filter((p) => p.spot === 'hero')
+          .slice(0, 3)
+          .map((p) => photo(p, 'large')),
         stock('hero'),
         stock('congregation'),
         stock('band'),

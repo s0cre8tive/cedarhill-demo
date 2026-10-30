@@ -1,5 +1,5 @@
 import type { Payload } from 'payload'
-import { loadStarterContent } from './starter'
+import { loadStarterContent, LEAD_PASTORS } from './starter'
 import { loadPortrait } from './portraits'
 
 /**
@@ -22,18 +22,12 @@ async function upgradeDemo(payload: Payload) {
   const old = await payload.find({ collection: 'leaders', where: { name: { equals: 'Pastor Renee Walker' } }, limit: 1, depth: 0 })
   const doc = old.docs[0]
   if (!doc) return
-  const name = 'Pastors Jacob & Renee Walker'
-  const photo = await loadPortrait(payload, name)
+  const photo = await loadPortrait(payload, LEAD_PASTORS.name)
   await payload.update({
     collection: 'leaders',
     id: doc.id,
     context: { skipLog: true },
-    data: {
-      name,
-      title: 'Lead Pastors',
-      bio: 'Jacob and Renee have led Cedar Hill together for twelve years. They love a full fellowship hall, a long walk after Sunday dinner, and a sermon that sends people out ready to serve their neighbors.',
-      ...(photo ? { photo } : {}),
-    } as never,
+    data: { ...LEAD_PASTORS, photo: photo ?? null } as never,
   })
   payload.logger.info('Updated the lead pastors to Jacob & Renee Walker')
 }

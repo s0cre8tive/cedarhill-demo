@@ -70,6 +70,12 @@ export const STOCK = {
   },
 } as const
 
+export const LEAD_PASTORS = {
+  name: 'Pastors Jacob & Renee Walker',
+  title: 'Lead Pastors',
+  bio: 'Jacob and Renee have led Cedar Hill together for twelve years. They love a full fellowship hall, a long walk after Sunday dinner, and a sermon that sends people out ready to serve their neighbors.',
+}
+
 export type StockKey = keyof typeof STOCK
 
 export const stockUrl = (key: StockKey, w = 2000) =>
@@ -179,7 +185,7 @@ export async function loadStarterContent(payload: Payload) {
   }
 
   const leaders = [
-    { name: 'Pastors Jacob & Renee Walker', title: 'Lead Pastors', bio: 'Jacob and Renee have led Cedar Hill together for twelve years. They love a full fellowship hall, a long walk after Sunday dinner, and a sermon that sends people out ready to serve their neighbors.' },
+    { ...LEAD_PASTORS },
     { name: 'Rev. Daniel Okafor', title: 'Associate Pastor', bio: 'Daniel oversees small groups and care ministries. If you’re new, he’s probably the one handing you a coffee and asking your name.' },
     { name: 'Marcus Reed', title: 'Youth Pastor', bio: 'Marcus leads Cedar Youth on Wednesday nights and runs the best lock-in in Maple Grove.' },
   ]
