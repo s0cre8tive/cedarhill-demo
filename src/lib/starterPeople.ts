@@ -1,7 +1,7 @@
 import type { Payload } from 'payload'
 
 /** Fictional people for the Cedar Hill demo pipeline. */
-const TAGS = ['Youth', 'Kids', 'Worship & Arts', 'Small Groups', 'Prayer Team', 'Outreach', 'Volunteer', 'New believer', 'Membership class']
+const TAGS = ['Youth', 'Kids', 'Worship & Arts', 'Small Groups', 'Prayer Team', 'Outreach', 'Volunteer', 'New believer', 'Membership class', 'Email list']
 
 type P = {
   first: string

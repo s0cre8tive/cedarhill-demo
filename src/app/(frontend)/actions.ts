@@ -16,7 +16,7 @@ function tooMany(ip: string) {
   return recent.length > LIMIT
 }
 
-type FormType = 'visit' | 'member' | 'salvation' | 'prayer'
+type FormType = 'visit' | 'member' | 'salvation' | 'prayer' | 'connect'
 
 /** Friendly question labels so the inbox reads like a conversation, not a database. */
 const LABELS: Record<FormType, Record<string, string>> = {
@@ -49,6 +49,10 @@ const LABELS: Record<FormType, Record<string, string>> = {
     decision_where: 'Where',
     next: 'Would like help with',
     prayer: 'How we can pray',
+  },
+  connect: {
+    interests: 'Wants to hear about',
+    signup_from: 'Signed up from',
   },
   prayer: {
     category: 'Praying for',
@@ -91,6 +95,10 @@ export async function submitForm(type: FormType, formData: FormData): Promise<Su
     if (contact.includes('@')) email = contact
     else if (contact) phone = contact
     if (!clean(formData.get('request'))) return { ok: false, error: 'Please share your prayer request.' }
+  } else if (type === 'connect') {
+    // The pop-up only asks for a first name and email.
+    if (!first || !email) return { ok: false, error: 'Please add your first name and email.' }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: 'That email doesn’t look quite right.' }
   } else if (!first || !last || !email) {
     return { ok: false, error: 'Please fill in your name and email.' }
   }

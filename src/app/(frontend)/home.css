@@ -1186,3 +1186,222 @@
     transition: none;
   }
 }
+
+/* ---------- Stay connected pop-up ---------- */
+.cp {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(18, 14, 36, 0.62);
+  backdrop-filter: blur(3px);
+  animation: cp-fade 0.25s ease-out;
+}
+.cp__box {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  width: min(880px, 100%);
+  max-height: calc(100svh - 40px);
+  overflow: auto;
+  border-radius: 22px;
+  background: var(--bg);
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.6);
+  animation: cp-rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.cp__ph {
+  position: relative;
+  min-height: 100%;
+  background: var(--ink);
+}
+.cp__ph img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cp__ph img {
+  object-position: 40% 30%;
+}
+.cp__cap {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(18, 14, 36, 0.72);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cp__body {
+  padding: 46px 40px 34px;
+}
+.cp__kicker {
+  margin: 0 0 10px;
+  color: var(--coral);
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ch .cp h2 {
+  font-size: clamp(34px, 4.4vw, 48px);
+  line-height: 0.98;
+}
+.cp__lede {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 16.5px;
+}
+.cp__form {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+}
+.cp__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.cp__form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.cp__form label i {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted);
+}
+.cp__form input {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1.5px solid #d9d3ec;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+}
+.cp__form input:focus {
+  outline: none;
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(91, 63, 217, 0.2);
+}
+.cp .hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.cp__submit {
+  width: 100%;
+  margin-top: 4px;
+}
+.cp__submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.cp__err {
+  margin: 0;
+  color: #b42318;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.cp__fine {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  text-align: center;
+}
+.cp__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.cp__prayer {
+  display: inline-block;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  width: 100%;
+  color: var(--violet) !important;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+}
+.cp__prayer:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp__x {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.cp__x:hover {
+  background: var(--bg-2);
+}
+@keyframes cp-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes cp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
+@media (max-width: 720px) {
+  .cp {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .cp__box {
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: 22px 22px 0 0;
+    max-height: 92svh;
+  }
+  .cp__ph {
+    min-height: 0;
+    height: 170px;
+  }
+  .cp__ph img {
+    object-position: 40% 22%;
+  }
+  .cp__body {
+    padding: 26px 20px max(24px, env(safe-area-inset-bottom));
+  }
+  .cp__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp,
+  .cp__box {
+    animation: none;
+  }
+}

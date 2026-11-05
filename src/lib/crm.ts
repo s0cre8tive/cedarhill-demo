@@ -13,10 +13,12 @@ export async function tagId(payload: Payload, name: string, req?: PayloadRequest
   return doc.id
 }
 
-const FORM_FOLLOW_UP: Record<string, { tag?: string; task: (first: string) => string }> = {
+const FORM_FOLLOW_UP: Record<string, { tag?: string; task?: (first: string) => string }> = {
   visit: { task: (f) => `Welcome ${f}: call or text before Sunday` },
   member: { tag: 'Membership class', task: (f) => `Invite ${f} to the next membership class` },
   salvation: { tag: 'New believer', task: (f) => `Reach out to ${f} about next steps` },
+  // Email sign-ups just join the list; no call needed.
+  connect: { tag: 'Email list' },
 }
 
 /**
@@ -72,6 +74,8 @@ export async function linkResponseToPerson(
 
   await payload.update({ collection: 'inbox', id: doc.id, data: { person: person!.id } as never, req, context: { skipLog: true } })
 
+  if (!plan.task) return
+
   // One open follow-up per person is enough. A repeat visitor doesn't get a second one.
   const open = await payload.count({
     collection: 'follow-ups',
@@ -86,6 +90,6 @@ export async function linkResponseToPerson(
     collection: 'follow-ups',
     req,
     context: { skipLog: true },
-    data: { title: plan.task(person!.firstName || name.split(' ')[0] || 'them'), person: person!.id, due: due.toISOString() } as never,
+    data: { title: plan.task!(person!.firstName || name.split(' ')[0] || 'them'), person: person!.id, due: due.toISOString() } as never,
   })
 }

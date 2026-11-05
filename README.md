@@ -50,6 +50,7 @@ The seed also has Marcus post a **Youth Lock-In** so there's something waiting i
 | Inbox | Every form submission in plain sentences; New → Following up → Done |
 | Recent Changes | One log of every change: who, what, live or waiting. Email updates will write here too |
 | People (CRM) | Everyone the church is getting to know. Plan a Visit, New Member and Salvation forms add the person automatically (matched by email or phone, so no duplicates) with a follow-up due in 2 days. Prayer requests stay private in the Inbox |
+| Stay connected pop-up | On the homepage, after 15 seconds or halfway down the page. Asks for a first name and email, and links to the prayer request form. Sign-ups go to the Inbox and to People with the **Email list** tag. Closing it hides it for 30 days; signing up hides it for good. Add `?connect` to the address to open it any time |
 | Pipeline board | `/admin/pipeline`: drag people through New guest → Contacted → Second visit → Connected → Member. Filter by tag or "assigned to me" and download the list as a spreadsheet (CSV) |
 | Follow-ups | Tasks like "Call Sarah by Friday", assigned to a staff member. Yours show on the dashboard home |
 | Tags | Groups like Youth, Worship or Volunteer. All staff can see and update People; only the Pastor / Admin and Office can delete |

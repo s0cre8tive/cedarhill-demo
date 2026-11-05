@@ -7,6 +7,7 @@ export const FORM_TYPES = [
   { label: 'New Member', value: 'member' },
   { label: 'Salvation', value: 'salvation' },
   { label: 'Prayer Request', value: 'prayer' },
+  { label: 'Stay Connected (email sign-up)', value: 'connect' },
 ] as const
 
 /** Editors see everything except prayer requests marked "Pastors only". */
@@ -104,7 +105,7 @@ export const Inbox: CollectionConfig = {
       label: 'Person in People',
       type: 'relationship',
       relationTo: 'people',
-      admin: { position: 'sidebar', description: 'Added automatically for visit, membership and salvation forms.' },
+      admin: { position: 'sidebar', description: 'Added automatically for every form except prayer requests.' },
     },
     {
       name: 'staffNotes',

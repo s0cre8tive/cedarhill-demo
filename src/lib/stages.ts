@@ -14,6 +14,7 @@ export const SOURCES = [
   { value: 'visit', label: 'Plan a Visit form' },
   { value: 'member', label: 'New Member form' },
   { value: 'salvation', label: 'Salvation form' },
+  { value: 'connect', label: 'Stay connected pop-up' },
   { value: 'event', label: 'Event' },
   { value: 'in-person', label: 'Met in person' },
   { value: 'other', label: 'Other' },

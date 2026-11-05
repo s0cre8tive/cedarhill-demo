@@ -318,7 +318,7 @@ export interface Person {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  source?: ('visit' | 'member' | 'salvation' | 'event' | 'in-person' | 'other') | null;
+  source?: ('visit' | 'member' | 'salvation' | 'connect' | 'event' | 'in-person' | 'other') | null;
   fullName?: string | null;
   phoneDigits?: string | null;
   updatedAt: string;
@@ -396,9 +396,9 @@ export interface FollowUp {
 export interface Inbox {
   id: number;
   status: 'new' | 'following-up' | 'done';
-  formType: 'visit' | 'member' | 'salvation' | 'prayer';
+  formType: 'visit' | 'member' | 'salvation' | 'prayer' | 'connect';
   /**
-   * Added automatically for visit, membership and salvation forms.
+   * Added automatically for every form except prayer requests.
    */
   person?: (number | null) | Person;
   /**

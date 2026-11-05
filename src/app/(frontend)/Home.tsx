@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { ConnectPopup } from './ConnectPopup'
 import type { HomeData, Photo } from '@/lib/site'
 
 const Arrow = () => (
@@ -550,6 +551,10 @@ export default function Home({ data }: { data: HomeData }) {
           </p>
         </div>
       </footer>
+      <ConnectPopup
+        photo={{ url: '/demo/jacob-renee-walker.jpg', alt: '' }}
+        caption="Pastors Jacob & Renee Walker"
+      />
     </div>
   )
 }
