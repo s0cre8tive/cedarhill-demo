@@ -59,11 +59,18 @@ export async function ensureDemoUsers(payload: Payload, opts: { includePastor?: 
 export async function resetDemo(payload: Payload, by: string) {
   const ctx = { skipLog: true }
   // Order matters: things that point at photos/ministries go first.
-  for (const collection of ['events', 'sermons', 'leaders', 'ministries', 'inbox', 'changes', 'media'] as const) {
+  for (const collection of ['events', 'sermons', 'leaders', 'ministries', 'inbox', 'changes'] as const) {
     await payload.delete({ collection, where: { id: { exists: true } }, context: ctx })
   }
-  await payload.updateGlobal({ slug: 'church-info', context: ctx, data: { services: [] } as never })
-  await loadStarterContent(payload)
+  // Keep the starter photos (all named "cedarhill-…") so they don't have to be downloaded again.
+  // Anything visitors uploaded is removed.
+  const media = await payload.find({ collection: 'media', pagination: false, depth: 0 })
+  for (const m of media.docs) {
+    if (!String(m.filename ?? '').startsWith('cedarhill-')) {
+      await payload.delete({ collection: 'media', id: m.id, context: ctx })
+    }
+  }
+  await loadStarterContent(payload, { reset: true })
   await ensureDemoUsers(payload)
   // The starter content adds its own "loaded" entry; replace it with who reset it.
   await payload.delete({ collection: 'changes', where: { source: { equals: 'system' } }, context: ctx })

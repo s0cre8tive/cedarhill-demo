@@ -96,75 +96,144 @@ const daysAgo = (n: number) => {
   return d.toISOString()
 }
 
-async function downloadPhoto(payload: Payload, key: StockKey, spot: string, caption?: string) {
-  try {
-    const res = await fetch(stockUrl(key), { signal: AbortSignal.timeout(20000) })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const data = Buffer.from(await res.arrayBuffer())
-    const doc = await payload.create({
-      collection: 'media',
-      context: { skipLog: true },
-      data: { alt: STOCK[key].alt, spot, caption, credit: STOCK[key].credit } as never,
-      file: { data, mimetype: 'image/jpeg', name: `cedarhill-${key}.jpg`, size: data.length },
-    })
-    return doc.id
-  } catch (err) {
-    payload.logger.warn(`Photo "${key}" could not be downloaded (${(err as Error).message}). The site will load it from Unsplash instead.`)
-    return null
-  }
+type PhotoPlan = { key: StockKey; spot: string; caption?: string }
+
+async function fetchStock(key: StockKey) {
+  const res = await fetch(stockUrl(key), { signal: AbortSignal.timeout(15000) })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return Buffer.from(await res.arrayBuffer())
 }
 
-/** Fills an empty database with Cedar Hill's demo content. Safe to call more than once. */
-export async function loadStarterContent(payload: Payload) {
+/**
+ * Gets the starter photos into Photos. Photos already there (from an earlier load) are reused,
+ * so a reset is quick. Missing ones are downloaded all at once, then saved in order.
+ */
+async function loadPhotos(payload: Payload, plan: PhotoPlan[]) {
+  const ids: Array<string | number | null> = []
+  const missing: number[] = []
+  for (const [i, p] of plan.entries()) {
+    const found = await payload.find({
+      collection: 'media',
+      where: { and: [{ filename: { contains: `cedarhill-${p.key}` } }, { spot: { equals: p.spot } }] },
+      limit: 1,
+      depth: 0,
+    })
+    const doc = found.docs[0]
+    if (doc) {
+      await payload.update({
+        collection: 'media',
+        id: doc.id,
+        context: { skipLog: true },
+        data: { alt: STOCK[p.key].alt, caption: p.caption ?? null, credit: STOCK[p.key].credit } as never,
+      })
+      ids[i] = doc.id
+    } else {
+      ids[i] = null
+      missing.push(i)
+    }
+  }
+  if (!missing.length) return ids
+
+  const files = await Promise.allSettled(missing.map((i) => fetchStock(plan[i].key)))
+  for (const [n, i] of missing.entries()) {
+    const p = plan[i]
+    const f = files[n]
+    if (f.status !== 'fulfilled') {
+      payload.logger.warn(`Photo "${p.key}" could not be downloaded (${(f.reason as Error)?.message}). The site will load it from Unsplash instead.`)
+      continue
+    }
+    try {
+      const doc = await payload.create({
+        collection: 'media',
+        context: { skipLog: true },
+        data: { alt: STOCK[p.key].alt, spot: p.spot, caption: p.caption, credit: STOCK[p.key].credit } as never,
+        file: { data: f.value, mimetype: 'image/jpeg', name: `cedarhill-${p.key}.jpg`, size: f.value.length },
+      })
+      ids[i] = doc.id
+    } catch (err) {
+      payload.logger.warn(`Photo "${p.key}" could not be saved (${(err as Error).message}).`)
+    }
+  }
+  return ids
+}
+
+export const STARTER_INFO = {
+  services: [
+    { name: 'Sunday Worship', day: 'Sunday', time: '10:30 AM', note: 'Kids check-in opens at 10:10' },
+    { name: 'Wednesday Night Groups', day: 'Wednesday', time: '7:00 PM', note: 'Dinner at 6:15 · all ages' },
+    { name: 'Neighbors Pantry', day: 'Saturday', time: '9–11 AM', note: 'Free groceries · no sign-up needed' },
+  ],
+  street: '2140 Cedar Hill Road',
+  cityLine: 'Maple Grove, MD 20999',
+  phone: '(301) 555-0142',
+  email: 'hello@cedarhill.example',
+  givingLink: 'https://example.com/give',
+  liveLink: '',
+}
+
+export const STARTER_ANNOUNCEMENT = {
+  show: true,
+  message: 'Fall Festival is Saturday, Nov 14 · free food, games and a bounce house for the kids.',
+  linkText: 'Details',
+  linkUrl: '/#happening',
+}
+
+const isEmpty = async (payload: Payload, collection: 'events' | 'ministries' | 'leaders' | 'sermons') =>
+  (await payload.count({ collection })).totalDocs === 0
+
+/**
+ * Fills in Cedar Hill's demo content. Each part is only added when it's missing, so this
+ * is safe to run again and finishes the job if an earlier run was interrupted.
+ * `reset: true` also puts service times and the banner back.
+ */
+export async function loadStarterContent(payload: Payload, opts: { reset?: boolean } = {}) {
   const ctx = { skipLog: true }
   const info = await payload.findGlobal({ slug: 'church-info' })
-  if (info.services && info.services.length) return false
+  const firstTime = !(info.services && info.services.length)
+  const demo = process.env.DEMO_RESET !== 'off'
+  // A real church site only ever gets starter content once. The demo also repairs itself.
+  if (!firstTime && !opts.reset && !demo) return false
+
+  const need = {
+    ministries: await isEmpty(payload, 'ministries'),
+    leaders: await isEmpty(payload, 'leaders'),
+    events: await isEmpty(payload, 'events'),
+    sermons: await isEmpty(payload, 'sermons'),
+  }
+  const anything = firstTime || opts.reset || Object.values(need).some(Boolean)
+  if (!anything) return false
 
   payload.logger.info('Loading Cedar Hill demo content…')
 
-  await payload.updateGlobal({
-    slug: 'church-info',
-    context: ctx,
-    data: {
-      services: [
-        { name: 'Sunday Worship', day: 'Sunday', time: '10:30 AM', note: 'Kids check-in opens at 10:10' },
-        { name: 'Wednesday Night Groups', day: 'Wednesday', time: '7:00 PM', note: 'Dinner at 6:15 · all ages' },
-        { name: 'Neighbors Pantry', day: 'Saturday', time: '9–11 AM', note: 'Free groceries · no sign-up needed' },
-      ],
-      street: '2140 Cedar Hill Road',
-      cityLine: 'Maple Grove, MD 20999',
-      phone: '(301) 555-0142',
-      email: 'hello@cedarhill.example',
-      givingLink: 'https://example.com/give',
-      liveLink: '',
-    } as never,
-  })
+  if (firstTime || opts.reset) {
+    await payload.updateGlobal({ slug: 'church-info', context: ctx, data: STARTER_INFO as never })
+    await payload.updateGlobal({ slug: 'announcement', context: ctx, data: STARTER_ANNOUNCEMENT })
+  }
 
-  await payload.updateGlobal({
-    slug: 'announcement',
-    context: ctx,
-    data: {
-      show: true,
-      message: 'Fall Festival is Saturday, Nov 14 · free food, games and a bounce house for the kids.',
-      linkText: 'Details',
-      linkUrl: '/#happening',
-    },
-  })
-
-  // Photos (downloaded from Unsplash on the computer or server running the site)
+  // Photos. Header slideshow: newest shows first, so the main worship photo goes last.
+  const plan: PhotoPlan[] = [
+    { key: 'band', spot: 'hero' },
+    { key: 'congregation', spot: 'hero' },
+    { key: 'hero', spot: 'hero' },
+    { key: 'congregation', spot: 'gallery', caption: 'Sunday mornings at Cedar Hill' },
+    { key: 'laughing', spot: 'gallery', caption: 'Coffee after service' },
+    { key: 'outreach', spot: 'library' },
+    { key: 'welcome', spot: 'visit' },
+    { key: 'bible', spot: 'sermon' },
+    { key: 'band', spot: 'library' },
+    { key: 'kids', spot: 'library' },
+    { key: 'youth', spot: 'library' },
+    { key: 'groups', spot: 'library' },
+    { key: 'prayer', spot: 'library' },
+    // newest gallery photo shows first, so the door photo goes last
+    { key: 'door', spot: 'gallery', caption: 'Come on in — the door is open' },
+  ]
+  const got = await loadPhotos(payload, plan)
   const ph: Partial<Record<StockKey, string | number | null>> = {}
-  // Header slideshow: newest shows first, so the main worship photo goes last.
-  await downloadPhoto(payload, 'band', 'hero')
-  await downloadPhoto(payload, 'congregation', 'hero')
-  ph.hero = await downloadPhoto(payload, 'hero', 'hero')
-  ph.congregation = await downloadPhoto(payload, 'congregation', 'gallery', 'Sunday mornings at Cedar Hill')
-  ph.laughing = await downloadPhoto(payload, 'laughing', 'gallery', 'Coffee after service')
-  ph.outreach = await downloadPhoto(payload, 'outreach', 'library')
-  ph.welcome = await downloadPhoto(payload, 'welcome', 'visit')
-  ph.bible = await downloadPhoto(payload, 'bible', 'sermon')
-  for (const k of ['band', 'kids', 'youth', 'groups', 'prayer'] as const) ph[k] = await downloadPhoto(payload, k, 'library')
-  // newest gallery photo shows first, so add the hall photo last
-  ph.door = await downloadPhoto(payload, 'door', 'gallery', 'Come on in — the door is open')
+  plan.forEach((p, i) => {
+    // ministries and events use the library / gallery copies
+    if (p.spot !== 'hero') ph[p.key] = got[i]
+  })
 
   const ministries: Array<{ key: StockKey; name: string; tagline: string; meets: string; about: string; leaderName: string }> = [
     { key: 'kids', name: 'Cedar Kids', tagline: 'Birth through 5th grade', meets: 'Sundays · during the 10:30 service', about: 'Safe, checked-in classrooms where kids learn the big story of God through games, music and small groups.', leaderName: 'Alicia Moreno' },
@@ -174,22 +243,23 @@ export async function loadStarterContent(payload: Payload) {
     { key: 'prayer', name: 'Prayer Team', tagline: 'Standing with you in prayer', meets: 'Sundays · 9:45 AM in the chapel', about: 'A team that prays over every request, before and after every service.', leaderName: 'Grace Whitfield' },
     { key: 'outreach', name: 'Neighbors Outreach', tagline: 'Pantry, tutoring & community care', meets: 'Saturdays · 9–11 AM', about: 'Our Saturday pantry, after-school tutoring and seasonal drives that serve Maple Grove.', leaderName: 'Tom Nguyen' },
   ]
+  if (need.ministries)
+    for (const [i, m] of ministries.entries()) {
+      await payload.create({
+        collection: 'ministries',
+        context: ctx,
+        data: { name: m.name, tagline: m.tagline, meets: m.meets, about: m.about, leaderName: m.leaderName, order: i + 1, photo: ph[m.key] ?? undefined } as never,
+      })
+    }
   const ministryIds: Record<string, string | number> = {}
-  for (const [i, m] of ministries.entries()) {
-    const doc = await payload.create({
-      collection: 'ministries',
-      context: ctx,
-      data: { name: m.name, tagline: m.tagline, meets: m.meets, about: m.about, leaderName: m.leaderName, order: i + 1, photo: ph[m.key] ?? undefined } as never,
-    })
-    ministryIds[m.name] = doc.id
-  }
+  for (const m of (await payload.find({ collection: 'ministries', limit: 100, depth: 0 })).docs) ministryIds[m.name] = m.id
 
   const leaders = [
     { ...LEAD_PASTORS },
     { name: 'Rev. Daniel Okafor', title: 'Associate Pastor', bio: 'Daniel oversees small groups and care ministries. If you’re new, he’s probably the one handing you a coffee and asking your name.' },
     { name: 'Marcus Reed', title: 'Youth Pastor', bio: 'Marcus leads Cedar Youth on Wednesday nights and runs the best lock-in in Maple Grove.' },
   ]
-  for (const [i, l] of leaders.entries()) {
+  if (need.leaders) for (const [i, l] of leaders.entries()) {
     const photo = await loadPortrait(payload, l.name)
     await payload.create({ collection: 'leaders', context: ctx, data: { ...l, photo, order: i + 1 } as never })
   }
@@ -200,7 +270,7 @@ export async function loadStarterContent(payload: Payload) {
     { title: 'Thanksgiving Food Drive', date: upcoming('2026-11-22'), time: 'All day', location: 'Front lobby', details: 'Drop off canned goods and boxed stuffing before or after service. Everything goes to the Neighbors Pantry.', ministry: 'Neighbors Outreach' },
     { title: 'Christmas Eve Candlelight Service', date: upcoming('2026-12-24'), time: '5:00 PM & 7:00 PM', location: 'Sanctuary', details: 'Carols, candles and the Christmas story. Childcare available at the 5:00 service.' },
   ]
-  for (const e of events)
+  if (need.events) for (const e of events)
     await payload.create({
       collection: 'events',
       context: ctx,
@@ -212,7 +282,7 @@ export async function loadStarterContent(payload: Payload) {
     { title: 'Rooted: Deep Roots, Wide Branches', scripture: 'Colossians 2:6–7', date: daysAgo(10) },
     { title: 'Rooted: The Cedar and the Storm', scripture: 'Psalm 92:12–15', date: daysAgo(17) },
   ]
-  for (const s of sermons)
+  if (need.sermons) for (const s of sermons)
     await payload.create({ collection: 'sermons', context: ctx, data: { ...s, preacher: 'Pastor Renee Walker' } })
 
   await payload.create({

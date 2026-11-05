@@ -34,6 +34,10 @@ async function readDemoFile(file: string): Promise<Buffer | null> {
 export async function loadPortrait(payload: Payload, name: string) {
   const p = PORTRAITS[name]
   if (!p) return undefined
+  // Reuse the copy already in Photos, if there is one.
+  const stem = `cedarhill-${p.file.replace(/\.jpg$/, '')}`
+  const existing = await payload.find({ collection: 'media', where: { filename: { contains: stem } }, limit: 1, depth: 0 })
+  if (existing.docs[0]) return existing.docs[0].id
   const data = await readDemoFile(p.file)
   if (!data) {
     payload.logger.warn(`Portrait for ${name} could not be loaded. A monogram will show instead.`)
