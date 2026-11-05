@@ -89,7 +89,7 @@ export default buildConfig({
           return Response.json({ ok: true })
         } catch (err) {
           req.payload.logger.error({ err, msg: 'Demo reset failed' })
-          return Response.json({ error: 'The reset didn’t finish. Try again in a minute.' }, { status: 500 })
+          return Response.json({ error: `The reset didn’t finish: ${(err as Error).message}` }, { status: 500 })
         }
       },
     },

@@ -12,7 +12,7 @@ export function ResetDemo() {
     try {
       const res = await fetch('/api/reset-demo', { method: 'POST', credentials: 'include' })
       const body = (await res.json().catch(() => ({}))) as { error?: string }
-      if (!res.ok) throw new Error(body.error || 'The reset didn’t finish. Try again in a minute.')
+      if (!res.ok) throw new Error(body.error || `The reset didn’t finish (error ${res.status}). Try again in a minute.`)
       setStep('done')
       setTimeout(() => window.location.reload(), 1500)
     } catch (err) {

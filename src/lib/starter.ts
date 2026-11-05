@@ -108,7 +108,7 @@ async function fetchStock(key: StockKey) {
  * Gets the starter photos into Photos. Photos already there (from an earlier load) are reused,
  * so a reset is quick. Missing ones are downloaded all at once, then saved in order.
  */
-async function loadPhotos(payload: Payload, plan: PhotoPlan[]) {
+async function loadPhotos(payload: Payload, plan: PhotoPlan[], download: boolean) {
   const ids: Array<string | number | null> = []
   const missing: number[] = []
   for (const [i, p] of plan.entries()) {
@@ -132,7 +132,9 @@ async function loadPhotos(payload: Payload, plan: PhotoPlan[]) {
       missing.push(i)
     }
   }
-  if (!missing.length) return ids
+  // Downloads only happen on the very first load. Otherwise the site shows the original
+  // Unsplash photo for anything missing, so a reset never waits on the internet.
+  if (!missing.length || !download) return ids
 
   const files = await Promise.allSettled(missing.map((i) => fetchStock(plan[i].key)))
   for (const [n, i] of missing.entries()) {
@@ -228,7 +230,8 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
     // newest gallery photo shows first, so the door photo goes last
     { key: 'door', spot: 'gallery', caption: 'Come on in — the door is open' },
   ]
-  const got = await loadPhotos(payload, plan)
+  const download = firstTime && !opts.reset
+  const got = await loadPhotos(payload, plan, download)
   const ph: Partial<Record<StockKey, string | number | null>> = {}
   plan.forEach((p, i) => {
     // ministries and events use the library / gallery copies
@@ -260,7 +263,7 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
     { name: 'Marcus Reed', title: 'Youth Pastor', bio: 'Marcus leads Cedar Youth on Wednesday nights and runs the best lock-in in Maple Grove.' },
   ]
   if (need.leaders) for (const [i, l] of leaders.entries()) {
-    const photo = await loadPortrait(payload, l.name)
+    const photo = await loadPortrait(payload, l.name, { download })
     await payload.create({ collection: 'leaders', context: ctx, data: { ...l, photo, order: i + 1 } as never })
   }
 
