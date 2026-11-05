@@ -49,6 +49,10 @@ The seed also has Marcus post a **Youth Lock-In** so there's something waiting i
 | Leaders | "Our pastors" (monogram shows if there's no photo) |
 | Inbox | Every form submission in plain sentences; New → Following up → Done |
 | Recent Changes | One log of every change: who, what, live or waiting. Email updates will write here too |
+| People (CRM) | Everyone the church is getting to know. Plan a Visit, New Member and Salvation forms add the person automatically (matched by email or phone, so no duplicates) with a follow-up due in 2 days. Prayer requests stay private in the Inbox |
+| Pipeline board | `/admin/pipeline`: drag people through New guest → Contacted → Second visit → Connected → Member. Filter by tag or "assigned to me" and download the list as a spreadsheet (CSV) |
+| Follow-ups | Tasks like "Call Sarah by Friday", assigned to a staff member. Yours show on the dashboard home |
+| Tags | Groups like Youth, Worship or Volunteer. All staff can see and update People; only the Pastor / Admin and Office can delete |
 | Reset demo | Pastor / Admin only, at the bottom of the dashboard home. Puts all starter content back, clears the inbox and log, and resets the Tasha and Marcus logins to `CedarHill2026`. Accounts you added are kept. Set `DEMO_RESET=off` to hide it on a real church site |
 | Nightly reset | Vercel runs `/cron/reset-demo` every night (see `vercel.json`). Needs a `CRON_SECRET` environment variable in Vercel |
 | Demo help | The login screen lists the two demo logins, and Tasha and Marcus get a 3-step "Demo tour" on the dashboard home |

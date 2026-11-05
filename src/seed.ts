@@ -10,7 +10,7 @@
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { loadStarterContent } from './lib/starter'
-import { ensureDemoUsers } from './lib/demo'
+import { ensureDemoUsers, resetDemo } from './lib/demo'
 
 async function run() {
   // Starter content loads automatically when Payload starts (onInit).
@@ -20,6 +20,8 @@ async function run() {
   const { totalDocs: users } = await payload.count({ collection: 'users' })
   if (!users) {
     await ensureDemoUsers(payload, { includePastor: true })
+    // Reload so the sample follow-ups are assigned to Tasha and Marcus.
+    await resetDemo(payload, 'Setup')
     payload.logger.info('Created demo logins (password CedarHill2026). Marcus posted the Youth Lock-In for approval.')
   }
 

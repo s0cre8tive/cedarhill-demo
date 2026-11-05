@@ -1,5 +1,6 @@
 import type { Access, CollectionConfig, Where } from 'payload'
 import { isAdmin, isStaff, hiddenForLeaders } from '../access'
+import { linkResponseToPerson } from '../lib/crm'
 
 export const FORM_TYPES = [
   { label: 'Plan a Visit', value: 'visit' },
@@ -43,6 +44,16 @@ export const Inbox: CollectionConfig = {
   },
   hooks: {
     afterChange: [
+      // New guests from the website go straight into People with a follow-up.
+      async ({ doc, operation, req, context }) => {
+        if (operation !== 'create' || context?.noCrm) return doc
+        try {
+          await linkResponseToPerson(req, doc)
+        } catch (err) {
+          req.payload.logger.error({ err, msg: 'Could not add this response to People' })
+        }
+        return doc
+      },
       async ({ doc, operation, req }) => {
         // Optional: email a notification when something new comes in.
         const to = process.env.NOTIFY_EMAIL
@@ -87,6 +98,13 @@ export const Inbox: CollectionConfig = {
           admin: { readOnly: true, width: '50%' },
         },
       ],
+    },
+    {
+      name: 'person',
+      label: 'Person in People',
+      type: 'relationship',
+      relationTo: 'people',
+      admin: { position: 'sidebar', description: 'Added automatically for visit, membership and salvation forms.' },
     },
     {
       name: 'staffNotes',

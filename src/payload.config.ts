@@ -15,6 +15,9 @@ import { Leaders } from './collections/Leaders'
 import { Inbox } from './collections/Inbox'
 import { Ministries } from './collections/Ministries'
 import { Changes } from './collections/Changes'
+import { People } from './collections/People'
+import { FollowUps } from './collections/FollowUps'
+import { Tags } from './collections/Tags'
 import { ChurchInfo } from './globals/ChurchInfo'
 import { Announcement } from './globals/Announcement'
 import { firstRun } from './lib/firstRun'
@@ -50,7 +53,11 @@ export default buildConfig({
         Icon: '@/components/admin/Brand#Icon',
       },
       beforeDashboard: ['@/components/admin/Welcome#Welcome'],
+      beforeNavLinks: ['@/components/admin/Brand#PipelineLink'],
       afterNavLinks: ['@/components/admin/Brand#ViewSiteLink'],
+      views: {
+        pipeline: { Component: '@/components/admin/Pipeline#Pipeline', path: '/pipeline' },
+      },
       afterLogin: ['@/components/admin/Brand#LoginHelp'],
     },
     importMap: {
@@ -59,7 +66,7 @@ export default buildConfig({
   },
   // Nav order = the order staff see in the side menu.
   globals: [Announcement, ChurchInfo],
-  collections: [Events, Ministries, Sermons, Media, Leaders, Inbox, Changes, Users],
+  collections: [Events, Ministries, Sermons, Media, Leaders, People, FollowUps, Tags, Inbox, Changes, Users],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

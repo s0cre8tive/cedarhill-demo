@@ -1,5 +1,5 @@
 import { APIError, type CollectionConfig } from 'payload'
-import { isAdmin, isAdminField, isAdminOrSelf } from '../access'
+import { isAdmin, isAdminField, isAdminOrSelf, isLoggedIn } from '../access'
 
 /**
  * Staff who can sign in at /admin.
@@ -32,7 +32,8 @@ export const Users: CollectionConfig = {
     },
   },
   access: {
-    read: isAdminOrSelf,
+    // Staff can see each other's names so they can assign follow-ups.
+    read: isLoggedIn,
     create: isAdmin,
     update: isAdminOrSelf,
     delete: isAdmin,

@@ -1,4 +1,4 @@
-import type { Payload, TypedUser } from 'payload'
+import type { Payload, TypedUser, Where } from 'payload'
 import React from 'react'
 import { ResetDemo } from './ResetDemo'
 
@@ -22,6 +22,8 @@ const ICONS = {
   mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v3',
   megaphone: 'M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13',
   photo: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3 16l5-5 4 4 3-3 6 6M15.5 9.5h.01',
+  board: 'M3 4h5v16H3zM10 4h5v10h-5zM17 4h4v13h-4z',
+  check: 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
   people: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
 }
 
@@ -52,6 +54,34 @@ export const Welcome = async ({ payload, user }: Props) => {
   let upcoming = 0
   let changes: Array<{ id: string | number; summary?: string | null; source?: string | null; status?: string | null; by?: string | null; createdAt: string; href?: string | null }> = []
   let myMinistry: { id: string | number; name: string } | null = null
+  let newGuests = 0
+  let dueCount = 0
+  let myTasks: Array<{ id: string | number; title: string; due?: string | null; person?: { id: string | number; fullName?: string | null } | null; late: boolean }> = []
+  const meId = String((user as unknown as { id?: string | number } | null)?.id ?? '')
+  const endOfToday = new Date(new Date().setHours(23, 59, 59, 999)).toISOString()
+
+  try {
+    const me = (user as unknown as { id?: string | number } | null)?.id
+    if (me) {
+      const mineOpen: { and: Where[] } = { and: [{ assignedTo: { equals: me } }, { done: { not_equals: true } }] }
+      const [ng, due, list] = await Promise.all([
+        payload.count({ collection: 'people', where: { stage: { equals: 'new-guest' } } }),
+        payload.count({ collection: 'follow-ups', where: { and: [...mineOpen.and, { due: { less_than_equal: endOfToday } }] } }),
+        payload.find({ collection: 'follow-ups', where: mineOpen, sort: 'due', limit: 5, depth: 1 }),
+      ])
+      newGuests = ng.totalDocs
+      dueCount = due.totalDocs
+      myTasks = list.docs.map((t) => ({
+        id: t.id,
+        title: t.title,
+        due: t.due as string | null,
+        person: (t.person && typeof t.person === 'object' ? t.person : null) as { id: string | number; fullName?: string | null } | null,
+        late: Boolean(t.due && String(t.due).slice(0, 10) < new Date().toISOString().slice(0, 10)),
+      }))
+    }
+  } catch {
+    /* nice-to-have */
+  }
 
   try {
     if (isLeader) {
@@ -83,6 +113,24 @@ export const Welcome = async ({ payload, user }: Props) => {
   }
 
   type Tile = { href: string; title: string; text: string; icon: string; badge?: number; tone?: 'violet' | 'coral' | 'green' }
+
+  const crmTiles: Tile[] = [
+    {
+      href: `${admin}/pipeline`,
+      title: 'People pipeline',
+      text: newGuests ? `${newGuests} new ${newGuests === 1 ? 'guest' : 'guests'} to welcome` : 'See everyone by stage',
+      icon: ICONS.board,
+      badge: newGuests,
+      tone: 'green',
+    },
+    {
+      href: `${admin}/collections/follow-ups?where[done][not_equals]=true&where[assignedTo][equals]=${meId}&sort=due`,
+      title: 'My follow-ups',
+      text: dueCount ? `${dueCount} due today or overdue` : 'Nothing due today',
+      icon: ICONS.check,
+      badge: dueCount,
+    },
+  ]
 
   const tiles: Tile[] = isLeader
     ? [
@@ -195,14 +243,8 @@ export const Welcome = async ({ payload, user }: Props) => {
                   yet: it waits for the church office.
                 </li>
                 <li>
-                  <a href={myMinistry ? `${admin}/collections/ministries/${myMinistry.id}` : `${admin}/collections/ministries`}>
-                    Update Cedar Youth
-                  </a>
-                  . Change the meeting time, save, and check the Ministries section on the{' '}
-                  <a href="/#ministries" target="_blank" rel="noopener">
-                    website
-                  </a>
-                  .
+                  Open the <a href={`${admin}/pipeline`}>Pipeline board</a>, pick the <b>Youth</b> tag and move Devin to{' '}
+                  <b>Second visit</b>.
                 </li>
                 <li>
                   <a href={`${admin}/logout`}>Sign out</a> and sign back in as Tasha (<code>office@cedarhill.demo</code>) to
@@ -223,11 +265,12 @@ export const Welcome = async ({ payload, user }: Props) => {
                   Open it, switch Approval to Live and save. It appears under Coming up.
                 </li>
                 <li>
-                  Send a{' '}
-                  <a href="/prayer" target="_blank" rel="noopener">
-                    prayer request
+                  Fill out{' '}
+                  <a href="/visit" target="_blank" rel="noopener">
+                    Plan a visit
                   </a>{' '}
-                  from the website, then find it in the <a href={`${admin}/collections/inbox`}>Inbox</a>.
+                  on the website, then find yourself on the <a href={`${admin}/pipeline`}>Pipeline board</a> with a follow-up
+                  waiting.
                 </li>
               </>
             )}
@@ -237,7 +280,7 @@ export const Welcome = async ({ payload, user }: Props) => {
       )}
 
       <div className="ch-tiles">
-        {tiles.map((t) => (
+        {[...tiles.slice(0, 1), ...crmTiles, ...tiles.slice(1)].map((t) => (
           <a key={t.title} href={t.href} className={`ch-tile${t.tone ? ` ch-tile--${t.tone}` : ''}`}>
             <span className="ch-tile__ic">
               <Ic d={t.icon} />
@@ -248,6 +291,33 @@ export const Welcome = async ({ payload, user }: Props) => {
           </a>
         ))}
       </div>
+
+      {myTasks.length > 0 && (
+        <div className="ch-feed ch-tasks">
+          <div className="ch-feed__top">
+            <h2>Your follow-ups</h2>
+            <div className="ch-feed__keys">
+              <a href={`${admin}/collections/follow-ups?where[done][not_equals]=true&where[assignedTo][equals]=${meId}&sort=due`}>See all →</a>
+            </div>
+          </div>
+          {myTasks.map((t) => (
+            <a key={t.id} className="ch-feed__item" href={`${admin}/collections/follow-ups/${t.id}`}>
+              <span className={`ch-chip ${t.late ? 'ch-chip--coral' : 'ch-chip--violet'}`}>
+                {t.due
+                  ? t.late
+                    ? 'Overdue'
+                    : new Date(t.due).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })
+                  : 'No date'}
+              </span>
+              <span className="ch-feed__what">
+                {t.title}
+                {t.person?.fullName && <small>{t.person.fullName}</small>}
+              </span>
+              <span className="ch-chip ch-chip--green">Open</span>
+            </a>
+          ))}
+        </div>
+      )}
 
       {!isLeader && (
         <div className="ch-feed">

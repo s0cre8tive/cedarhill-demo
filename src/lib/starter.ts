@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import { loadPortrait } from './portraits'
+import { loadStarterPeople } from './starterPeople'
 
 /**
  * Cedar Hill Church — a fictional mid-size church used to demo EZEdit Mission.
@@ -188,7 +189,7 @@ const isEmpty = async (payload: Payload, collection: 'events' | 'ministries' | '
  * is safe to run again and finishes the job if an earlier run was interrupted.
  * `reset: true` also puts service times and the banner back.
  */
-export async function loadStarterContent(payload: Payload, opts: { reset?: boolean } = {}) {
+export async function loadStarterContent(payload: Payload, opts: { reset?: boolean; skipPeople?: boolean } = {}) {
   const ctx = { skipLog: true }
   const info = await payload.findGlobal({ slug: 'church-info' })
   const firstTime = !(info.services && info.services.length)
@@ -201,6 +202,7 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
     leaders: await isEmpty(payload, 'leaders'),
     events: await isEmpty(payload, 'events'),
     sermons: await isEmpty(payload, 'sermons'),
+    people: !opts.skipPeople && (await payload.count({ collection: 'people' })).totalDocs === 0,
   }
   const anything = firstTime || opts.reset || Object.values(need).some(Boolean)
   if (!anything) return false
@@ -287,6 +289,8 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
   ]
   if (need.sermons) for (const s of sermons)
     await payload.create({ collection: 'sermons', context: ctx, data: { ...s, preacher: 'Pastor Renee Walker' } })
+
+  if (need.people) await loadStarterPeople(payload)
 
   await payload.create({
     collection: 'changes',

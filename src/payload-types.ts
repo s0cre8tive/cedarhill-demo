@@ -72,6 +72,9 @@ export interface Config {
     sermons: Sermon;
     media: Media;
     leaders: Leader;
+    people: Person;
+    'follow-ups': FollowUp;
+    tags: Tag;
     inbox: Inbox;
     changes: Change;
     users: User;
@@ -80,13 +83,21 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    people: {
+      followUps: 'follow-ups';
+      responses: 'inbox';
+    };
+  };
   collectionsSelect: {
     events: EventsSelect<false> | EventsSelect<true>;
     ministries: MinistriesSelect<false> | MinistriesSelect<true>;
     sermons: SermonsSelect<false> | SermonsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     leaders: LeadersSelect<false> | LeadersSelect<true>;
+    people: PeopleSelect<false> | PeopleSelect<true>;
+    'follow-ups': FollowUpsSelect<false> | FollowUpsSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     inbox: InboxSelect<false> | InboxSelect<true>;
     changes: ChangesSelect<false> | ChangesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -280,41 +291,36 @@ export interface Leader {
   createdAt: string;
 }
 /**
- * Everything people send from the website lands here. Mark each one as you follow up.
+ * Guests and members the church is following up with. Website forms add people here automatically.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inbox".
+ * via the `definition` "people".
  */
-export interface Inbox {
+export interface Person {
   id: number;
-  status: 'new' | 'following-up' | 'done';
-  formType: 'visit' | 'member' | 'salvation' | 'prayer';
-  /**
-   * Who reached out, when, and anything to remember.
-   */
-  staffNotes?: string | null;
-  name?: string | null;
+  firstName: string;
+  lastName?: string | null;
   email?: string | null;
   phone?: string | null;
-  summary?: string | null;
-  visibility?: ('pastors' | 'team') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Every change to the website, from the dashboard (and, soon, from email), in one place.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "changes".
- */
-export interface Change {
-  id: number;
-  summary?: string | null;
-  area?: string | null;
-  source?: ('dashboard' | 'email' | 'system') | null;
-  status?: ('live' | 'pending' | 'blocked') | null;
-  by?: string | null;
-  href?: string | null;
+  stage: 'new-guest' | 'contacted' | 'second-visit' | 'connected' | 'member';
+  assignedTo?: (number | null) | User;
+  /**
+   * Type to find a tag, or add a new one under People → Tags.
+   */
+  tags?: (number | Tag)[] | null;
+  followUps?: {
+    docs?: (number | FollowUp)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  responses?: {
+    docs?: (number | Inbox)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  source?: ('visit' | 'member' | 'salvation' | 'event' | 'in-person' | 'other') | null;
+  fullName?: string | null;
+  phoneDigits?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -351,6 +357,78 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * Groups for People, like Youth, Worship or Volunteer. Add as many as you like.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Calls, texts and visits to make. Open ones due today show on your dashboard.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "follow-ups".
+ */
+export interface FollowUp {
+  id: number;
+  title: string;
+  person?: (number | null) | Person;
+  assignedTo?: (number | null) | User;
+  due?: string | null;
+  done?: boolean | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Everything people send from the website lands here. Mark each one as you follow up.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inbox".
+ */
+export interface Inbox {
+  id: number;
+  status: 'new' | 'following-up' | 'done';
+  formType: 'visit' | 'member' | 'salvation' | 'prayer';
+  /**
+   * Added automatically for visit, membership and salvation forms.
+   */
+  person?: (number | null) | Person;
+  /**
+   * Who reached out, when, and anything to remember.
+   */
+  staffNotes?: string | null;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  summary?: string | null;
+  visibility?: ('pastors' | 'team') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Every change to the website, from the dashboard (and, soon, from email), in one place.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "changes".
+ */
+export interface Change {
+  id: number;
+  summary?: string | null;
+  area?: string | null;
+  source?: ('dashboard' | 'email' | 'system') | null;
+  status?: ('live' | 'pending' | 'blocked') | null;
+  by?: string | null;
+  href?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -395,6 +473,18 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'leaders';
         value: number | Leader;
+      } | null)
+    | ({
+        relationTo: 'people';
+        value: number | Person;
+      } | null)
+    | ({
+        relationTo: 'follow-ups';
+        value: number | FollowUp;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
       } | null)
     | ({
         relationTo: 'inbox';
@@ -557,11 +647,55 @@ export interface LeadersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people_select".
+ */
+export interface PeopleSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  email?: T;
+  phone?: T;
+  stage?: T;
+  assignedTo?: T;
+  tags?: T;
+  followUps?: T;
+  responses?: T;
+  source?: T;
+  fullName?: T;
+  phoneDigits?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "follow-ups_select".
+ */
+export interface FollowUpsSelect<T extends boolean = true> {
+  title?: T;
+  person?: T;
+  assignedTo?: T;
+  due?: T;
+  done?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "inbox_select".
  */
 export interface InboxSelect<T extends boolean = true> {
   status?: T;
   formType?: T;
+  person?: T;
   staffNotes?: T;
   name?: T;
   email?: T;

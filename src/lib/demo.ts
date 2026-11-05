@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import { loadStarterContent } from './starter'
+import { loadStarterPeople } from './starterPeople'
 
 /**
  * Demo helpers for Cedar Hill (EZEdit Mission case study):
@@ -59,7 +60,7 @@ export async function ensureDemoUsers(payload: Payload, opts: { includePastor?: 
 export async function resetDemo(payload: Payload, by: string) {
   const ctx = { skipLog: true }
   // Order matters: things that point at photos/ministries go first.
-  for (const collection of ['events', 'sermons', 'leaders', 'ministries', 'inbox', 'changes'] as const) {
+  for (const collection of ['events', 'sermons', 'leaders', 'inbox', 'follow-ups', 'people', 'tags', 'ministries', 'changes'] as const) {
     await payload.delete({ collection, where: { id: { exists: true } }, context: ctx })
   }
   // Keep the starter photos (all named "cedarhill-…") so they don't have to be downloaded again.
@@ -70,8 +71,10 @@ export async function resetDemo(payload: Payload, by: string) {
       await payload.delete({ collection: 'media', id: m.id, context: ctx })
     }
   }
-  await loadStarterContent(payload, { reset: true })
+  await loadStarterContent(payload, { reset: true, skipPeople: true })
   await ensureDemoUsers(payload)
+  // People come last so their follow-ups can be assigned to Tasha and Marcus.
+  await loadStarterPeople(payload)
   // The starter content adds its own "loaded" entry; replace it with who reset it.
   await payload.delete({ collection: 'changes', where: { source: { equals: 'system' } }, context: ctx })
   await payload.create({

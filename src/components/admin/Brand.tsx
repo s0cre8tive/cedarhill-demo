@@ -16,6 +16,13 @@ export const Icon = () => (
   <img src="/cedarhill-logo.png" alt="Cedar Hill" width={30} height={30} style={{ display: 'block' }} />
 )
 
+/** Pinned at the top of the side menu */
+export const PipelineLink = () => (
+  <a className="ch-navpipe" href="/admin/pipeline">
+    <span aria-hidden="true">▦</span> Pipeline board
+  </a>
+)
+
 /** Extra links at the bottom of the side menu */
 export const ViewSiteLink = () => (
   <div className="ch-navfoot">
