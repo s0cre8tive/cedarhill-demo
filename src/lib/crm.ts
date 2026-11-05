@@ -37,6 +37,7 @@ export async function linkResponseToPerson(
   const name = String(doc.name ?? '').trim()
   if (!email && !phone) return
   const { payload } = req
+  const skipLog = req.context?.skipLog
 
   const or: Where[] = [...(email ? [{ email: { equals: email } }] : []), ...(phone ? [{ phoneDigits: { equals: phone } }] : [])]
   const match = await payload.find({ collection: 'people', where: { or }, limit: 1, depth: 0, req })
@@ -64,6 +65,7 @@ export async function linkResponseToPerson(
         tags: tag ? [tag] : [],
       } as never,
     })) as unknown as typeof person
+    req.context.skipLog = skipLog
     await logChange(req, {
       area: 'People',
       summary: `${name || 'A guest'} added to People from the website`,

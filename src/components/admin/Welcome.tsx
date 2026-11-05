@@ -1,6 +1,7 @@
 import type { Payload, TypedUser, Where } from 'payload'
 import React from 'react'
 import { ResetDemo } from './ResetDemo'
+import { emailService } from '../../lib/emailList'
 
 type Props = { payload: Payload; user?: TypedUser | null }
 type U = { name?: string; role?: string; ministry?: unknown } | null
@@ -341,7 +342,7 @@ export const Welcome = async ({ payload, user }: Props) => {
                     {c.by} · {ago(c.createdAt)}
                   </small>
                 </span>
-                <span className={`ch-chip ${c.status === 'pending' ? 'ch-chip--gold' : 'ch-chip--green'}`}>
+                <span className={`ch-chip ${c.status === 'pending' ? 'ch-chip--gold' : c.status === 'blocked' ? 'ch-chip--coral' : 'ch-chip--green'}`}>
                   {c.status === 'pending' ? 'Needs approval' : c.status === 'blocked' ? 'Blocked' : 'Live'}
                 </span>
               </a>
@@ -349,6 +350,27 @@ export const Welcome = async ({ payload, user }: Props) => {
           ) : (
             <p className="ch-feed__empty">Changes you make will show up here.</p>
           )}
+        </div>
+      )}
+
+      {!isLeader && (
+        <div className={`ch-mail${emailService() ? ' is-on' : ''}`}>
+          <span className="ch-mail__dot" aria-hidden="true" />
+          <p>
+            {emailService() ? (
+              <>
+                <b>Email list connected to {emailService()}.</b> People who sign up on the website are added automatically.
+              </>
+            ) : (
+              <>
+                <b>Email list not connected yet.</b> Sign-ups are saved in People with the Email list tag. Connect Kit or
+                Mailchimp to send them your weekly note.
+              </>
+            )}
+          </p>
+          <a className="ch-mail__link" href={`${admin}/pipeline`}>
+            See sign-ups →
+          </a>
         </div>
       )}
 

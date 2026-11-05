@@ -1,6 +1,8 @@
 import type { Access, CollectionConfig, Where } from 'payload'
 import { isAdmin, isStaff, hiddenForLeaders } from '../access'
 import { linkResponseToPerson } from '../lib/crm'
+import { addToEmailList } from '../lib/emailList'
+import { logChange } from '../lib/changeLog'
 
 export const FORM_TYPES = [
   { label: 'Plan a Visit', value: 'visit' },
@@ -48,10 +50,31 @@ export const Inbox: CollectionConfig = {
       // New guests from the website go straight into People with a follow-up.
       async ({ doc, operation, req, context }) => {
         if (operation !== 'create' || context?.noCrm) return doc
+        // Saving related records with `context: { skipLog }` changes req.context for the rest of
+        // this request, so remember the original setting and put it back for our own log entries.
+        const skipLog = req.context?.skipLog
         try {
           await linkResponseToPerson(req, doc)
         } catch (err) {
           req.payload.logger.error({ err, msg: 'Could not add this response to People' })
+        }
+        req.context.skipLog = skipLog
+        // Email sign-ups also go to the church's email service (Kit or Mailchimp), if one is connected.
+        if (doc.formType === 'connect' && doc.email) {
+          const [firstName, ...rest] = String(doc.name ?? '').split(/\s+/)
+          const result = await addToEmailList({ email: doc.email, firstName, lastName: rest.join(' ') })
+          if (result) {
+            if (!result.ok) req.payload.logger.error({ msg: 'Email list sync failed', error: result.error })
+            await logChange(req, {
+              area: 'Email list',
+              source: 'system',
+              status: result.ok ? 'live' : 'blocked',
+              summary: result.ok
+                ? `${doc.name || doc.email} added to the ${result.service} email list`
+                : `${doc.name || doc.email} couldn’t be added to ${result.service}. Check the API key in Vercel.`,
+              href: `/admin/collections/inbox/${doc.id}`,
+            })
+          }
         }
         return doc
       },
