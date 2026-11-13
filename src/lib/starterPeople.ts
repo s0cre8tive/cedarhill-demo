@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { loadStarterSundays } from './starterSundays'
 
 /** Fictional people for the Cedar Hill demo pipeline. */
 const TAGS = ['Youth', 'Kids', 'Worship & Arts', 'Small Groups', 'Prayer Team', 'Outreach', 'Volunteer', 'New believer', 'Membership class', 'Email list']
@@ -92,4 +93,6 @@ export async function loadStarterPeople(payload: Payload) {
       })
     }
   }
+  // Check-ins, serve shifts, sign-ups and the Sunday Recap build on these people.
+  await loadStarterSundays(payload)
 }

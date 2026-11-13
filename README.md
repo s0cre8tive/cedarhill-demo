@@ -1,6 +1,6 @@
-# Cedar Hill Church — EZEdit Mission demo
+# Cedar Hill Church — Kingdom Kit demo
 
-A working demo church website with a built-in staff dashboard, made for the **EZEdit Mission** case study.
+A working demo church website with a built-in staff dashboard, made for the **Kingdom Kit** case study.
 Cedar Hill Church, Maple Grove, and everyone named here are fictional. Photos are free Unsplash photos.
 
 - Website: `/`

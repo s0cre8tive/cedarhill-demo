@@ -18,6 +18,11 @@ import { Changes } from './collections/Changes'
 import { People } from './collections/People'
 import { FollowUps } from './collections/FollowUps'
 import { Tags } from './collections/Tags'
+import { Attendance } from './collections/Attendance'
+import { ServeSlots } from './collections/ServeSlots'
+import { Signups } from './collections/Signups'
+import { Recaps } from './collections/Recaps'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { ChurchInfo } from './globals/ChurchInfo'
 import { Announcement } from './globals/Announcement'
 import { firstRun } from './lib/firstRun'
@@ -57,6 +62,8 @@ export default buildConfig({
       afterNavLinks: ['@/components/admin/Brand#ViewSiteLink'],
       views: {
         pipeline: { Component: '@/components/admin/Pipeline#Pipeline', path: '/pipeline' },
+        checkin: { Component: '@/components/admin/CheckIn#CheckIn', path: '/check-in' },
+        connectCard: { Component: '@/components/admin/ConnectCardQR#ConnectCardQR', path: '/connect-card' },
       },
       afterLogin: ['@/components/admin/Brand#LoginHelp'],
     },
@@ -66,7 +73,16 @@ export default buildConfig({
   },
   // Nav order = the order staff see in the side menu.
   globals: [Announcement, ChurchInfo],
-  collections: [Events, Ministries, Sermons, Media, Leaders, People, FollowUps, Tags, Inbox, Changes, Users],
+  collections: [Events, Ministries, Sermons, Media, Leaders, People, FollowUps, Tags, Inbox, Attendance, ServeSlots, Signups, Recaps, Changes, Users],
+  // Reminders, confirmations and the Sunday Recap. Turns on when RESEND_API_KEY and EMAIL_FROM are set.
+  email:
+    process.env.RESEND_API_KEY && process.env.EMAIL_FROM
+      ? resendAdapter({
+          apiKey: process.env.RESEND_API_KEY,
+          defaultFromAddress: process.env.EMAIL_FROM,
+          defaultFromName: process.env.EMAIL_FROM_NAME || 'Cedar Hill Church',
+        })
+      : undefined,
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

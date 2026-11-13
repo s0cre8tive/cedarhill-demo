@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition } from 'react'
 import { submitForm } from '../actions'
 
 type Props = {
-  type: 'visit' | 'member' | 'salvation' | 'prayer'
+  type: 'visit' | 'member' | 'salvation' | 'prayer' | 'card'
   label: string
   submitLabel: string
   fine: string

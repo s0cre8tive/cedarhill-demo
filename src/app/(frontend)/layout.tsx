@@ -5,7 +5,7 @@ import './styles.css'
 
 export const metadata = {
   title: 'Cedar Hill Church · Maple Grove',
-  description: 'Cedar Hill Church is a church family in Maple Grove. Deep roots, open doors. (Demo site for EZEdit Mission.)',
+  description: 'Cedar Hill Church is a church family in Maple Grove. Deep roots, open doors. (Demo site for Kingdom Kit.)',
   icons: { icon: '/favicon.png', apple: '/apple-touch-icon.png' },
 }
 

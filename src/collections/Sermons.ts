@@ -45,6 +45,26 @@ export const Sermons: CollectionConfig = {
       admin: { placeholder: 'Paste the YouTube or Facebook link', description: 'Copy the link from YouTube or Facebook and paste it here.' },
     },
     { name: 'scripture', label: 'Scripture (optional)', type: 'text', admin: { placeholder: 'e.g. Isaiah 43:18–19' } },
+    { name: 'series', label: 'Series (optional)', type: 'text', admin: { placeholder: 'e.g. Rooted', description: 'Sermons in the same series are grouped on the Watch page.' } },
     { name: 'summary', label: 'Short summary (optional)', type: 'textarea' },
+    {
+      name: 'clips',
+      label: 'Clips: the best moments',
+      type: 'array',
+      labels: { singular: 'Clip', plural: 'Clips' },
+      admin: {
+        description: 'Add the minute a great moment starts. The Watch page turns each one into a short clip people can jump to and share.',
+        initCollapsed: false,
+      },
+      fields: [
+        {
+          type: 'row',
+          fields: [
+            { name: 'title', label: 'What it’s about', type: 'text', required: true, admin: { width: '70%', placeholder: 'e.g. Roots grow in the dark' } },
+            { name: 'at', label: 'Starts at', type: 'text', required: true, admin: { width: '30%', placeholder: '12:30' } },
+          ],
+        },
+      ],
+    },
   ],
 }

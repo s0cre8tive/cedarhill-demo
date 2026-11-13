@@ -2,6 +2,8 @@ import type { Payload, TypedUser, Where } from 'payload'
 import React from 'react'
 import { ResetDemo } from './ResetDemo'
 import { emailService } from '../../lib/emailList'
+import { missingPeople } from '../../lib/care'
+import { openServeShifts } from '../../lib/recap'
 
 type Props = { payload: Payload; user?: TypedUser | null }
 type U = { name?: string; role?: string; ministry?: unknown } | null
@@ -113,6 +115,34 @@ export const Welcome = async ({ payload, user }: Props) => {
     /* counts are a nice-to-have */
   }
 
+  // Sundays: check-in, care alerts, serving, the recap and connect cards.
+  let hereCount = 0
+  let careCount = 0
+  let openSpots = 0
+  let recap: { id: string | number; status?: string | null } | null = null
+  let cardsWeek = 0
+  if (!isLeader) {
+    try {
+      const ymd = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date())
+      const sun = new Date(`${ymd}T12:00:00.000Z`)
+      sun.setUTCDate(sun.getUTCDate() - sun.getUTCDay())
+      const [here, missing, shifts, rc, cards] = await Promise.all([
+        payload.count({ collection: 'attendance', where: { date: { equals: sun.toISOString() } } }),
+        missingPeople(payload),
+        openServeShifts(payload),
+        payload.find({ collection: 'recaps', sort: '-weekOf', limit: 1, depth: 0 }),
+        payload.count({ collection: 'inbox', where: { and: [{ formType: { equals: 'card' } }, { createdAt: { greater_than: new Date(Date.now() - 7 * 864e5).toISOString() } }] } }),
+      ])
+      hereCount = here.totalDocs
+      careCount = missing.length
+      openSpots = shifts.reduce((n, s) => n + s.open, 0)
+      recap = rc.docs[0] ? { id: rc.docs[0].id, status: rc.docs[0].status } : null
+      cardsWeek = cards.totalDocs
+    } catch {
+      /* nice-to-have */
+    }
+  }
+
   type Tile = { href: string; title: string; text: string; icon: string; badge?: number; tone?: 'violet' | 'coral' | 'green' }
 
   const crmTiles: Tile[] = [
@@ -130,6 +160,45 @@ export const Welcome = async ({ payload, user }: Props) => {
       text: dueCount ? `${dueCount} due today or overdue` : 'Nothing due today',
       icon: ICONS.check,
       badge: dueCount,
+    },
+  ]
+
+  const sundayTiles: Tile[] = [
+    {
+      href: `${admin}/check-in`,
+      title: 'Sunday check-in',
+      text: hereCount ? `${hereCount} checked in last Sunday` : 'Tap people in as they arrive',
+      icon: ICONS.check,
+      tone: 'green',
+    },
+    {
+      href: `${admin}/check-in`,
+      title: 'Care alerts',
+      text: careCount ? `${careCount} ${careCount === 1 ? 'person has' : 'people have'} missed 3 Sundays` : 'Everyone’s been around lately',
+      icon: ICONS.people,
+      badge: careCount,
+      tone: careCount ? 'coral' : undefined,
+    },
+    {
+      href: `${admin}/collections/serve-slots`,
+      title: 'Serve schedule',
+      text: openSpots ? `${openSpots} open ${openSpots === 1 ? 'spot' : 'spots'} this week` : 'Every shift is covered',
+      icon: ICONS.event,
+      badge: openSpots,
+    },
+    {
+      href: recap ? `${admin}/collections/recaps/${recap.id}` : `${admin}/collections/recaps`,
+      title: 'Sunday Recap',
+      text: recap?.status === 'draft' ? 'This week’s draft is ready to send' : recap ? 'Sent · next draft Monday' : 'Drafted every Monday',
+      icon: ICONS.megaphone,
+      badge: recap?.status === 'draft' ? 1 : 0,
+      tone: 'violet',
+    },
+    {
+      href: `${admin}/connect-card`,
+      title: 'Connect card QR',
+      text: cardsWeek ? `${cardsWeek} ${cardsWeek === 1 ? 'card' : 'cards'} this week` : 'Print it or show it on screen',
+      icon: ICONS.inbox,
     },
   ]
 
@@ -292,6 +361,24 @@ export const Welcome = async ({ payload, user }: Props) => {
           </a>
         ))}
       </div>
+
+      {!isLeader && (
+        <>
+          <h2 className="ch-tiles__h">Sundays &amp; care</h2>
+          <div className="ch-tiles">
+            {sundayTiles.map((t) => (
+              <a key={t.title} href={t.href} className={`ch-tile${t.tone ? ` ch-tile--${t.tone}` : ''}`}>
+                <span className="ch-tile__ic">
+                  <Ic d={t.icon} />
+                  {t.badge ? <b className="ch-badge">{t.badge}</b> : null}
+                </span>
+                <strong>{t.title}</strong>
+                <span>{t.text}</span>
+              </a>
+            ))}
+          </div>
+        </>
+      )}
 
       {myTasks.length > 0 && (
         <div className="ch-feed ch-tasks">

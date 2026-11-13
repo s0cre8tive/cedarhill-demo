@@ -86,3 +86,54 @@ export async function addToEmailList(s: Subscriber): Promise<SyncResult> {
     return { service, ok: false, error: (err as Error).message }
   }
 }
+
+export type Broadcast = { subject: string; html: string; previewText?: string; fromName?: string; replyTo?: string }
+
+/** Sends one email (the Sunday Recap) to everyone on the church's list in Kit or Mailchimp. */
+export async function sendBroadcast(b: Broadcast): Promise<SyncResult> {
+  const service = emailService()
+  if (!service) return null
+  try {
+    if (service === 'Kit') {
+      const base = process.env.KIT_API_BASE || 'https://api.kit.com/v4'
+      const tag = process.env.KIT_TAG_ID
+      const res = await fetch(`${base}/broadcasts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Kit-Api-Key': process.env.KIT_API_KEY! },
+        body: JSON.stringify({
+          subject: b.subject,
+          content: b.html,
+          preview_text: b.previewText ?? '',
+          description: b.subject,
+          public: false,
+          send_at: new Date(Date.now() + 60_000).toISOString(),
+          ...(tag ? { subscriber_filter: [{ all: [{ type: 'tag', ids: [Number(tag)] }] }] } : {}),
+        }),
+        signal: AbortSignal.timeout(TIMEOUT),
+      })
+      if (!res.ok) throw new Error(`Kit said ${res.status}: ${(await res.text()).slice(0, 200)}`)
+    } else {
+      const key = process.env.MAILCHIMP_API_KEY!
+      const base = process.env.MAILCHIMP_API_BASE || `https://${key.split('-').pop()}.api.mailchimp.com/3.0`
+      const headers = { 'Content-Type': 'application/json', Authorization: `Basic ${Buffer.from(`cedarhill:${key}`).toString('base64')}` }
+      const call = async (path: string, method: string, body?: unknown) => {
+        const r = await fetch(`${base}${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(TIMEOUT) })
+        if (!r.ok) throw new Error(`Mailchimp said ${r.status}: ${(await r.text()).slice(0, 200)}`)
+        return r.status === 204 ? null : r.json()
+      }
+      const camp = (await call('/campaigns', 'POST', {
+        type: 'regular',
+        recipients: { list_id: process.env.MAILCHIMP_AUDIENCE_ID },
+        settings: { subject_line: b.subject, preview_text: b.previewText ?? '', title: b.subject, from_name: b.fromName ?? 'Cedar Hill Church', reply_to: b.replyTo ?? process.env.EMAIL_FROM ?? '' },
+      })) as { id: string }
+      await call(`/campaigns/${camp.id}/content`, 'PUT', { html: b.html })
+      await call(`/campaigns/${camp.id}/actions/send`, 'POST')
+    }
+    return { service, ok: true }
+  } catch (err) {
+    return { service, ok: false, error: (err as Error).message }
+  }
+}
+
+/** True when the site can send its own emails (reminders, confirmations) through Resend. */
+export const canEmail = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM)

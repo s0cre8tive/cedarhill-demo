@@ -76,6 +76,10 @@ export interface Config {
     'follow-ups': FollowUp;
     tags: Tag;
     inbox: Inbox;
+    attendance: Attendance;
+    'serve-slots': ServeSlot;
+    signups: Signup;
+    recaps: Recap;
     changes: Change;
     users: User;
     'payload-kv': PayloadKv;
@@ -84,9 +88,16 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    events: {
+      signups: 'signups';
+    };
     people: {
       followUps: 'follow-ups';
       responses: 'inbox';
+      attendance: 'attendance';
+    };
+    'serve-slots': {
+      signups: 'signups';
     };
   };
   collectionsSelect: {
@@ -99,6 +110,10 @@ export interface Config {
     'follow-ups': FollowUpsSelect<false> | FollowUpsSelect<true>;
     tags: TagsSelect<false> | TagsSelect<true>;
     inbox: InboxSelect<false> | InboxSelect<true>;
+    attendance: AttendanceSelect<false> | AttendanceSelect<true>;
+    'serve-slots': ServeSlotsSelect<false> | ServeSlotsSelect<true>;
+    signups: SignupsSelect<false> | SignupsSelect<true>;
+    recaps: RecapsSelect<false> | RecapsSelect<true>;
     changes: ChangesSelect<false> | ChangesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -162,6 +177,19 @@ export interface Event {
    * One or two sentences.
    */
   details?: string | null;
+  /**
+   * Adds a Sign up button. Everyone gets a reminder the day before.
+   */
+  signUp?: boolean | null;
+  /**
+   * Leave empty for no limit.
+   */
+  capacity?: number | null;
+  signups?: {
+    docs?: (number | Signup)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   link?: string | null;
   flyer?: (number | null) | Media;
   /**
@@ -173,6 +201,150 @@ export interface Event {
    */
   ministry?: (number | null) | Ministry;
   submittedBy?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Event and serve sign-ups from the website. Reminders go out automatically the day before.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "signups".
+ */
+export interface Signup {
+  id: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  what?: string | null;
+  event?: (number | null) | Event;
+  slot?: (number | null) | ServeSlot;
+  guests?: number | null;
+  date?: string | null;
+  person?: (number | null) | Person;
+  /**
+   * Checked automatically the day before.
+   */
+  reminderSent?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Shifts people can sign up for on the Serve page. Everyone gets a reminder the day before.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serve-slots".
+ */
+export interface ServeSlot {
+  id: number;
+  team: 'greeters' | 'coffee' | 'kids' | 'tech' | 'parking' | 'pantry';
+  spots: number;
+  date: string;
+  time?: string | null;
+  notes?: string | null;
+  signups?: {
+    docs?: (number | Signup)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  label?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Guests and members the church is following up with. Website forms add people here automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "people".
+ */
+export interface Person {
+  id: number;
+  firstName: string;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  stage: 'new-guest' | 'contacted' | 'second-visit' | 'connected' | 'member';
+  assignedTo?: (number | null) | User;
+  /**
+   * Type to find a tag, or add a new one under People → Tags.
+   */
+  tags?: (number | Tag)[] | null;
+  followUps?: {
+    docs?: (number | FollowUp)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  responses?: {
+    docs?: (number | Inbox)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  attendance?: {
+    docs?: (number | Attendance)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Updated by check-ins and connect cards.
+   */
+  lastSeen?: string | null;
+  source?: ('visit' | 'member' | 'salvation' | 'connect' | 'card' | 'serve' | 'event' | 'in-person' | 'other') | null;
+  fullName?: string | null;
+  phoneDigits?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * People who can sign in and update the website.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name: string;
+  role: 'admin' | 'editor' | 'leader';
+  /**
+   * Ministry leaders can only post events for this ministry.
+   */
+  ministry?: (number | null) | Ministry;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * The ministries shown in "Find your people" on the homepage.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ministries".
+ */
+export interface Ministry {
+  id: number;
+  name: string;
+  tagline?: string | null;
+  meets?: string | null;
+  about?: string | null;
+  photo?: (number | null) | Media;
+  leaderName?: string | null;
+  /**
+   * 1 shows first.
+   */
+  order?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -228,137 +400,6 @@ export interface Media {
   };
 }
 /**
- * The ministries shown in "Find your people" on the homepage.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ministries".
- */
-export interface Ministry {
-  id: number;
-  name: string;
-  tagline?: string | null;
-  meets?: string | null;
-  about?: string | null;
-  photo?: (number | null) | Media;
-  leaderName?: string | null;
-  /**
-   * 1 shows first.
-   */
-  order?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * The newest sermon is featured on the homepage.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "sermons".
- */
-export interface Sermon {
-  id: number;
-  title: string;
-  preacher?: string | null;
-  date: string;
-  /**
-   * Copy the link from YouTube or Facebook and paste it here.
-   */
-  video?: string | null;
-  scripture?: string | null;
-  summary?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Shown in "Meet our pastors" on the homepage. No photo? A monogram shows instead.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "leaders".
- */
-export interface Leader {
-  id: number;
-  name: string;
-  title?: string | null;
-  photo?: (number | null) | Media;
-  /**
-   * Two or three sentences.
-   */
-  bio?: string | null;
-  /**
-   * 1 shows first.
-   */
-  order?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Guests and members the church is following up with. Website forms add people here automatically.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "people".
- */
-export interface Person {
-  id: number;
-  firstName: string;
-  lastName?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  stage: 'new-guest' | 'contacted' | 'second-visit' | 'connected' | 'member';
-  assignedTo?: (number | null) | User;
-  /**
-   * Type to find a tag, or add a new one under People → Tags.
-   */
-  tags?: (number | Tag)[] | null;
-  followUps?: {
-    docs?: (number | FollowUp)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  responses?: {
-    docs?: (number | Inbox)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  source?: ('visit' | 'member' | 'salvation' | 'connect' | 'event' | 'in-person' | 'other') | null;
-  fullName?: string | null;
-  phoneDigits?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * People who can sign in and update the website.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
-  name: string;
-  role: 'admin' | 'editor' | 'leader';
-  /**
-   * Ministry leaders can only post events for this ministry.
-   */
-  ministry?: (number | null) | Ministry;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
-}
-/**
  * Groups for People, like Youth, Worship or Volunteer. Add as many as you like.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -396,7 +437,7 @@ export interface FollowUp {
 export interface Inbox {
   id: number;
   status: 'new' | 'following-up' | 'done';
-  formType: 'visit' | 'member' | 'salvation' | 'prayer' | 'connect';
+  formType: 'visit' | 'member' | 'salvation' | 'prayer' | 'connect' | 'card';
   /**
    * Added automatically for every form except prayer requests.
    */
@@ -409,7 +450,110 @@ export interface Inbox {
   email?: string | null;
   phone?: string | null;
   summary?: string | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   visibility?: ('pastors' | 'team') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Who was at church each week. Use Sunday check-in in the menu to mark people present; connect cards check people in on their own.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attendance".
+ */
+export interface Attendance {
+  id: number;
+  person: number | Person;
+  date: string;
+  how?: ('staff' | 'card') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * The newest sermon is featured on the homepage.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sermons".
+ */
+export interface Sermon {
+  id: number;
+  title: string;
+  preacher?: string | null;
+  date: string;
+  /**
+   * Copy the link from YouTube or Facebook and paste it here.
+   */
+  video?: string | null;
+  scripture?: string | null;
+  /**
+   * Sermons in the same series are grouped on the Watch page.
+   */
+  series?: string | null;
+  summary?: string | null;
+  /**
+   * Add the minute a great moment starts. The Watch page turns each one into a short clip people can jump to and share.
+   */
+  clips?:
+    | {
+        title: string;
+        at: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Shown in "Meet our pastors" on the homepage. No photo? A monogram shows instead.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "leaders".
+ */
+export interface Leader {
+  id: number;
+  name: string;
+  title?: string | null;
+  photo?: (number | null) | Media;
+  /**
+   * Two or three sentences.
+   */
+  bio?: string | null;
+  /**
+   * 1 shows first.
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * A draft is ready every Monday morning. Add a note, press Preview, then Send.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recaps".
+ */
+export interface Recap {
+  id: number;
+  subject: string;
+  /**
+   * Two or three sentences. This is the first thing people read.
+   */
+  pastorNote?: string | null;
+  sermon?: (number | null) | Sermon;
+  weekOf: string;
+  events?: (number | Event)[] | null;
+  announcement?: string | null;
+  showServe?: boolean | null;
+  status: 'draft' | 'sent';
+  sentAt?: string | null;
+  sentNote?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -491,6 +635,22 @@ export interface PayloadLockedDocument {
         value: number | Inbox;
       } | null)
     | ({
+        relationTo: 'attendance';
+        value: number | Attendance;
+      } | null)
+    | ({
+        relationTo: 'serve-slots';
+        value: number | ServeSlot;
+      } | null)
+    | ({
+        relationTo: 'signups';
+        value: number | Signup;
+      } | null)
+    | ({
+        relationTo: 'recaps';
+        value: number | Recap;
+      } | null)
+    | ({
         relationTo: 'changes';
         value: number | Change;
       } | null)
@@ -550,6 +710,9 @@ export interface EventsSelect<T extends boolean = true> {
   time?: T;
   location?: T;
   details?: T;
+  signUp?: T;
+  capacity?: T;
+  signups?: T;
   link?: T;
   flyer?: T;
   approval?: T;
@@ -583,7 +746,15 @@ export interface SermonsSelect<T extends boolean = true> {
   date?: T;
   video?: T;
   scripture?: T;
+  series?: T;
   summary?: T;
+  clips?:
+    | T
+    | {
+        title?: T;
+        at?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -659,6 +830,8 @@ export interface PeopleSelect<T extends boolean = true> {
   tags?: T;
   followUps?: T;
   responses?: T;
+  attendance?: T;
+  lastSeen?: T;
   source?: T;
   fullName?: T;
   phoneDigits?: T;
@@ -701,7 +874,70 @@ export interface InboxSelect<T extends boolean = true> {
   email?: T;
   phone?: T;
   summary?: T;
+  meta?: T;
   visibility?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attendance_select".
+ */
+export interface AttendanceSelect<T extends boolean = true> {
+  person?: T;
+  date?: T;
+  how?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "serve-slots_select".
+ */
+export interface ServeSlotsSelect<T extends boolean = true> {
+  team?: T;
+  spots?: T;
+  date?: T;
+  time?: T;
+  notes?: T;
+  signups?: T;
+  label?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "signups_select".
+ */
+export interface SignupsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  what?: T;
+  event?: T;
+  slot?: T;
+  guests?: T;
+  date?: T;
+  person?: T;
+  reminderSent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "recaps_select".
+ */
+export interface RecapsSelect<T extends boolean = true> {
+  subject?: T;
+  pastorNote?: T;
+  sermon?: T;
+  weekOf?: T;
+  events?: T;
+  announcement?: T;
+  showServe?: T;
+  status?: T;
+  sentAt?: T;
+  sentNote?: T;
   updatedAt?: T;
   createdAt?: T;
 }

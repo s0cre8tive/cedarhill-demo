@@ -157,6 +157,7 @@ export async function getHomeData() {
       location: e.location || '',
       details: e.details || '',
       link: e.link || '',
+      signUp: Boolean(e.signUp),
       flyer: photo(e.flyer, 'card'),
       ministry: typeof e.ministry === 'object' && e.ministry ? e.ministry.name : '',
       // Card image: flyer, then the ministry's photo, then a stock photo.

@@ -10,6 +10,7 @@ export const FORM_TYPES = [
   { label: 'Salvation', value: 'salvation' },
   { label: 'Prayer Request', value: 'prayer' },
   { label: 'Stay Connected (email sign-up)', value: 'connect' },
+  { label: 'Connect Card', value: 'card' },
 ] as const
 
 /** Editors see everything except prayer requests marked "Pastors only". */
@@ -150,6 +151,8 @@ export const Inbox: CollectionConfig = {
           ],
         },
         { name: 'summary', label: 'Their answers', type: 'textarea', admin: { readOnly: true, rows: 12 } },
+        // Structured answers the system uses (connect card choices). Not shown to staff.
+        { name: 'meta', type: 'json', admin: { hidden: true } },
         {
           name: 'visibility',
           label: 'Who may see this',

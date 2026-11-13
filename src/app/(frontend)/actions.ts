@@ -16,7 +16,7 @@ function tooMany(ip: string) {
   return recent.length > LIMIT
 }
 
-type FormType = 'visit' | 'member' | 'salvation' | 'prayer' | 'connect'
+type FormType = 'visit' | 'member' | 'salvation' | 'prayer' | 'connect' | 'card'
 
 /** Friendly question labels so the inbox reads like a conversation, not a database. */
 const LABELS: Record<FormType, Record<string, string>> = {
@@ -54,6 +54,12 @@ const LABELS: Record<FormType, Record<string, string>> = {
     interests: 'Wants to hear about',
     signup_from: 'Signed up from',
   },
+  card: {
+    visit: 'This is my',
+    wants: 'I’d like to',
+    service: 'Service',
+    prayer: 'How we can pray',
+  },
   prayer: {
     category: 'Praying for',
     request: 'Prayer request',
@@ -62,7 +68,16 @@ const LABELS: Record<FormType, Record<string, string>> = {
   },
 }
 
-const SKIP = new Set(['_started', 'website', 'consent', 'covenant', 'first_name', 'last_name', 'name', 'email', 'phone', 'contact', 'anonymous'])
+const VISIT: Record<string, string> = { first: 'First visit', few: 'Been a few times', home: 'Cedar Hill is home' }
+const WANTS: Record<string, string> = {
+  jesus: 'Know more about Jesus',
+  group: 'Join a small group',
+  serve: 'Serve on a team',
+  baptism: 'Get baptized',
+  member: 'Become a member',
+}
+
+const SKIP = new Set(['_started', 'service_date', 'website', 'consent', 'covenant', 'first_name', 'last_name', 'name', 'email', 'phone', 'contact', 'anonymous'])
 
 const clean = (v: FormDataEntryValue | null, max = 2000) =>
   typeof v === 'string' ? v.trim().slice(0, max) : ''
@@ -99,6 +114,11 @@ export async function submitForm(type: FormType, formData: FormData): Promise<Su
     // The pop-up only asks for a first name and email.
     if (!first || !email) return { ok: false, error: 'Please add your first name and email.' }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: 'That email doesn’t look quite right.' }
+  } else if (type === 'card') {
+    // A connect card only needs a first name and one way to reach them.
+    if (!first) return { ok: false, error: 'Please add your first name.' }
+    if (!email && !phone) return { ok: false, error: 'Please add a phone number or email so we can say hello.' }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: 'That email doesn’t look quite right.' }
   } else if (!first || !last || !email) {
     return { ok: false, error: 'Please fill in your name and email.' }
   }
@@ -122,10 +142,21 @@ export async function submitForm(type: FormType, formData: FormData): Promise<Su
   for (const [key, values] of grouped) {
     const label = LABELS[type][key] ?? key.replace(/_/g, ' ')
     let answer = values.map((v) => v.charAt(0).toUpperCase() + v.slice(1)).join(', ')
+    if (key === 'visit') answer = VISIT[values[0]] ?? answer
+    if (key === 'wants') answer = values.map((v) => WANTS[v] ?? v).join(', ')
     if (key === 'visibility') answer = answer === 'pastors' ? 'Pastors only' : 'Pastors & prayer team'
     lines.push(`${label}: ${answer}`)
   }
   if (anonymous) lines.unshift('Submitted anonymously')
+
+  const meta =
+    type === 'card'
+      ? {
+          visit: clean(formData.get('visit'), 20) || 'first',
+          wants: formData.getAll('wants').map((v) => clean(v, 20)).filter((v) => v in WANTS),
+          serviceDate: clean(formData.get('service_date'), 10) || undefined,
+        }
+      : undefined
 
   const visibility = type === 'prayer' && formData.get('visibility') === 'pastors' ? 'pastors' : 'team'
 
@@ -141,6 +172,7 @@ export async function submitForm(type: FormType, formData: FormData): Promise<Su
         phone,
         summary: lines.join('\n'),
         visibility,
+        ...(meta ? { meta } : {}),
       },
     })
   } catch (err) {
@@ -149,4 +181,36 @@ export async function submitForm(type: FormType, formData: FormData): Promise<Su
   }
 
   return { ok: true, first: anonymous ? '' : first || name.split(' ')[0] || '' }
+}
+
+export type SignUpResult = { ok: true; first: string; what: string } | { ok: false; error: string }
+
+/** Event and serve sign-ups. Adds the person to People and checks there's still room. */
+export async function signUp(kind: 'event' | 'serve', id: string, formData: FormData): Promise<SignUpResult> {
+  if (clean(formData.get('website'))) return { ok: true, first: '', what: '' }
+  const started = Number(formData.get('_started'))
+  if (started && Date.now() - started < 2500) return { ok: true, first: '', what: '' }
+  const h = await headers()
+  const ip = (h.get('x-forwarded-for') || h.get('x-real-ip') || 'unknown').split(',')[0].trim()
+  if (tooMany(ip)) return { ok: false, error: 'Too many sign-ups at once. Please wait a few minutes and try again.' }
+
+  const first = clean(formData.get('first_name'), 80)
+  const last = clean(formData.get('last_name'), 80)
+  const email = clean(formData.get('email'), 200)
+  const phone = clean(formData.get('phone'), 40)
+  const guests = Math.min(Math.max(Number(formData.get('guests')) || 1, 1), 12)
+  if (!first || !last) return { ok: false, error: 'Please add your first and last name.' }
+  if (!email && !phone) return { ok: false, error: 'Please add an email or phone number for your reminder.' }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: 'That email doesn’t look quite right.' }
+
+  try {
+    const payload = await getPayloadClient()
+    const { signUpFor } = await import('@/lib/signups')
+    const res = await signUpFor(payload, kind, id, { name: `${first} ${last}`, email, phone, guests })
+    if (!res.ok) return res
+    return { ok: true, first, what: res.what }
+  } catch (err) {
+    console.error('Sign-up failed', err)
+    return { ok: false, error: 'Something went wrong. Please try again, or call the church office.' }
+  }
 }

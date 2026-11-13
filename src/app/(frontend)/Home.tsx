@@ -108,13 +108,14 @@ export default function Home({ data }: { data: HomeData }) {
     ['/#about', 'About'],
     ['/#ministries', 'Ministries'],
     ['/#events', 'Events'],
-    ['/#watch', 'Watch'],
+    ['/watch', 'Watch'],
+    ['/serve', 'Serve'],
     ['/#visit', 'Visit'],
   ]
 
   const ctas: Array<[string, string, boolean]> = [
     ['/visit', 'Plan your visit', true],
-    [latest?.video || info.liveLink || '/#watch', 'Watch online', false],
+    ['/watch', 'Watch online', false],
     ['/member', 'Get connected', false],
   ]
 
@@ -314,10 +315,16 @@ export default function Home({ data }: { data: HomeData }) {
                       </p>
                       {e.location && <p className="ev-card__where">{e.location}</p>}
                       {e.details && <p className="ev-card__details">{e.details}</p>}
-                      {e.link && (
-                        <a className="link" href={e.link} target="_blank" rel="noopener">
-                          More information <Arrow />
+                      {e.signUp ? (
+                        <a className="link" href={`/events/${e.id}`}>
+                          Sign up <Arrow />
                         </a>
+                      ) : (
+                        e.link && (
+                          <a className="link" href={e.link} target="_blank" rel="noopener">
+                            More information <Arrow />
+                          </a>
+                        )
                       )}
                     </div>
                   </article>
@@ -370,32 +377,22 @@ export default function Home({ data }: { data: HomeData }) {
               </p>
               {latest.summary && <p className="watch__sum">{latest.summary}</p>}
               <div className="watch__btns">
-                {latest.video ? (
-                  <a className="btn btn--white" href={latest.video} target="_blank" rel="noopener">
-                    Watch the sermon <Arrow />
-                  </a>
-                ) : (
-                  <p className="watch__soon">Video coming soon.</p>
-                )}
+                <a className="btn btn--white" href={`/watch?s=${latest.id}`}>
+                  {latest.video ? 'Watch the sermon' : 'All messages'} <Arrow />
+                </a>
               </div>
               {older.length > 0 && (
                 <ul className="watch__older" aria-label="Earlier sermons">
                   {older.map((s) => (
                     <li key={s.id}>
-                      {s.video ? (
-                        <a href={s.video} target="_blank" rel="noopener">
-                          {s.title}
-                        </a>
-                      ) : (
-                        <span>{s.title}</span>
-                      )}
+                      <a href={`/watch?s=${s.id}`}>{s.title}</a>
                       <time>{fmtDate(s.date).long}</time>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
-            <a className="watch__art" href={latest.video || undefined} target={latest.video ? '_blank' : undefined} rel="noopener" aria-label={latest.video ? `Watch ${latest.title}` : undefined}>
+            <a className="watch__art" href={`/watch?s=${latest.id}`} aria-label={`Watch ${latest.title}`}>
               {latestArt ? <img src={latestArt} alt="" loading="lazy" /> : <Img p={photos.sermon} />}
               <span className="watch__play" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
@@ -523,24 +520,27 @@ export default function Home({ data }: { data: HomeData }) {
               <b>Church</b>
               <a href="/#about">About</a>
               <a href="/#pastors">Our pastors</a>
-              <a href="/#watch">Sermons</a>
+              <a href="/watch">Watch &amp; catch up</a>
+              <a href="/recap">Sunday Recap</a>
               <a href="/admin">Staff sign-in</a>
             </nav>
             <nav aria-label="Get involved">
               <b>Get involved</b>
               <a href="/#ministries">Ministries</a>
               <a href="/#events">Events</a>
+              <a href="/serve">Serve on a team</a>
               <a href="/member">Become a member</a>
             </nav>
             <nav aria-label="Connect">
               <b>Connect</b>
               <a href="/visit">Plan a visit</a>
+              <a href="/connect">Connect card</a>
               <a href="/prayer">Prayer request</a>
               <a href="/salvation">I said yes to Jesus</a>
             </nav>
           </div>
           <p className="foot__demo">
-            Demo site for <b>EZEdit Mission</b>. Cedar Hill Church and everyone named here are fictional. Photos from Unsplash.{' '}
+            Demo site for <b>Kingdom Kit</b>. Cedar Hill Church and everyone named here are fictional. Photos from Unsplash.{' '}
             <a href="/admin">Try the staff dashboard</a>
           </p>
           <p className="foot__demo foot__credit">

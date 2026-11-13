@@ -1,10 +1,11 @@
 import type { Payload } from 'payload'
 import { loadPortrait } from './portraits'
 import { loadStarterPeople } from './starterPeople'
+import { sundaysAgo } from './starterSundays'
 
 /**
- * Cedar Hill Church — a fictional mid-size church used to demo EZEdit Mission.
- * Names match the EZEdit Mission case study (Pastors Jacob & Renee Walker, Marcus in Youth).
+ * Cedar Hill Church — a fictional mid-size church used to demo Kingdom Kit.
+ * Names match the Kingdom Kit case study (Pastors Jacob & Renee Walker, Marcus in Youth).
  */
 
 /** Free photos from Unsplash (Unsplash License). Downloaded into Photos on first run. */
@@ -88,12 +89,6 @@ const upcoming = (iso: string) => {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
   while (d < today) d.setUTCDate(d.getUTCDate() + 7)
-  return d.toISOString()
-}
-const daysAgo = (n: number) => {
-  const d = new Date()
-  d.setUTCHours(12, 0, 0, 0)
-  d.setUTCDate(d.getUTCDate() - n)
   return d.toISOString()
 }
 
@@ -283,9 +278,9 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
     })
 
   const sermons = [
-    { title: 'Rooted: Planted by Streams of Water', scripture: 'Psalm 1:1–3', date: daysAgo(3), summary: 'Week four of our Rooted series. A tree doesn’t worry about the drought when its roots reach the river.' },
-    { title: 'Rooted: Deep Roots, Wide Branches', scripture: 'Colossians 2:6–7', date: daysAgo(10) },
-    { title: 'Rooted: The Cedar and the Storm', scripture: 'Psalm 92:12–15', date: daysAgo(17) },
+    { title: 'Rooted: Planted by Streams of Water', scripture: 'Psalm 1:1–3', date: sundaysAgo(0).toISOString(), summary: 'Week four of our Rooted series. A tree doesn’t worry about the drought when its roots reach the river.' },
+    { title: 'Rooted: Deep Roots, Wide Branches', scripture: 'Colossians 2:6–7', date: sundaysAgo(1).toISOString() },
+    { title: 'Rooted: The Cedar and the Storm', scripture: 'Psalm 92:12–15', date: sundaysAgo(2).toISOString() },
   ]
   if (need.sermons) for (const s of sermons)
     await payload.create({ collection: 'sermons', context: ctx, data: { ...s, preacher: 'Pastor Renee Walker' } })
@@ -295,7 +290,7 @@ export async function loadStarterContent(payload: Payload, opts: { reset?: boole
   await payload.create({
     collection: 'changes',
     context: ctx,
-    data: { summary: 'Cedar Hill demo content loaded', area: 'Website', source: 'system', status: 'live', by: 'EZEdit Mission' },
+    data: { summary: 'Cedar Hill demo content loaded', area: 'Website', source: 'system', status: 'live', by: 'Kingdom Kit' },
   })
 
   payload.logger.info('✅ Cedar Hill demo content is ready.')

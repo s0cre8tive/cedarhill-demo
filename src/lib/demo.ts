@@ -1,9 +1,10 @@
 import type { Payload } from 'payload'
 import { loadStarterContent } from './starter'
 import { loadStarterPeople } from './starterPeople'
+import { scanCare } from './care'
 
 /**
- * Demo helpers for Cedar Hill (EZEdit Mission case study):
+ * Demo helpers for Cedar Hill (Kingdom Kit case study):
  * pastor portraits, the shareable demo logins, and "Reset demo".
  */
 
@@ -60,7 +61,7 @@ export async function ensureDemoUsers(payload: Payload, opts: { includePastor?: 
 export async function resetDemo(payload: Payload, by: string) {
   const ctx = { skipLog: true }
   // Order matters: things that point at photos/ministries go first.
-  for (const collection of ['events', 'sermons', 'leaders', 'inbox', 'follow-ups', 'people', 'tags', 'ministries', 'changes'] as const) {
+  for (const collection of ['signups', 'attendance', 'recaps', 'serve-slots', 'events', 'sermons', 'leaders', 'inbox', 'follow-ups', 'people', 'tags', 'ministries', 'changes'] as const) {
     await payload.delete({ collection, where: { id: { exists: true } }, context: ctx })
   }
   // Keep the starter photos (all named "cedarhill-…") so they don't have to be downloaded again.
@@ -82,4 +83,6 @@ export async function resetDemo(payload: Payload, by: string) {
     context: ctx,
     data: { summary: 'Demo reset to the Cedar Hill starter content', area: 'Website', source: 'system', status: 'live', by },
   })
+  // Two regulars have been missing for a few Sundays, so care alerts have something to show.
+  await scanCare(payload)
 }

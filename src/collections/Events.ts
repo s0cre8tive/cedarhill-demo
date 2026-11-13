@@ -60,7 +60,34 @@ export const Events: CollectionConfig = {
     },
     { name: 'location', label: 'Where', type: 'text', defaultValue: 'Cedar Hill Church' },
     { name: 'details', label: 'A few words about it', type: 'textarea', admin: { description: 'One or two sentences.' } },
-    { name: 'link', label: 'Sign-up or info link (optional)', type: 'text', admin: { placeholder: 'https://' } },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'signUp',
+          label: 'Let people sign up on the website',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: { width: '50%', style: { alignSelf: 'flex-end' }, description: 'Adds a Sign up button. Everyone gets a reminder the day before.' },
+        },
+        {
+          name: 'capacity',
+          label: 'Spots available (optional)',
+          type: 'number',
+          min: 1,
+          admin: { width: '50%', condition: (d) => Boolean(d?.signUp), description: 'Leave empty for no limit.' },
+        },
+      ],
+    },
+    {
+      name: 'signups',
+      label: 'Who signed up',
+      type: 'join',
+      collection: 'signups',
+      on: 'event',
+      admin: { condition: (d) => Boolean(d?.signUp), defaultColumns: ['name', 'guests', 'email', 'phone', 'createdAt'] },
+    },
+    { name: 'link', label: 'Outside info link (optional)', type: 'text', admin: { placeholder: 'https://' } },
     { name: 'flyer', label: 'Flyer or photo (optional)', type: 'upload', relationTo: 'media' },
     {
       name: 'approval',

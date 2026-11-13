@@ -15,6 +15,8 @@ export const SOURCES = [
   { value: 'member', label: 'New Member form' },
   { value: 'salvation', label: 'Salvation form' },
   { value: 'connect', label: 'Stay connected pop-up' },
+  { value: 'card', label: 'Connect card' },
+  { value: 'serve', label: 'Serve sign-up' },
   { value: 'event', label: 'Event' },
   { value: 'in-person', label: 'Met in person' },
   { value: 'other', label: 'Other' },

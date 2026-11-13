@@ -1,4 +1,4 @@
-/* Cedar Hill dashboard — EZEdit Mission palette: violet (dashboard), coral (email), emerald (approval) */
+/* Cedar Hill dashboard — Kingdom Kit palette: violet (dashboard), coral (email), emerald (approval) */
 @import '@fontsource/anton/index.css';
 @import '@fontsource-variable/figtree/wght.css';
 
@@ -909,4 +909,393 @@
 .ch-mail__link {
   font-weight: 700;
   color: #4a2fc4 !important;
+}
+
+/* ---------- Sunday Recap buttons ---------- */
+.ch-rc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  border-radius: 16px;
+  background: linear-gradient(125deg, #eee8ff 0%, #f7f2ff 45%, #ffede2 100%);
+  border: 1px solid #e2dcf3;
+}
+.ch-rc__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14.5px;
+  color: #5d5876;
+  max-width: 560px;
+  b {
+    color: #1c1633;
+    font-size: 16px;
+  }
+}
+.ch-rc__ok {
+  color: var(--ch-green);
+  font-weight: 700;
+}
+.ch-rc__err {
+  color: #b42318;
+  font-weight: 700;
+}
+.ch-rc__btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ch-rc__btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1.5px solid #1c1633;
+  background: #fff;
+  color: #1c1633;
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  &:hover {
+    background: #1c1633;
+    color: #fff;
+  }
+  &[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+.ch-rc__btn--go {
+  background: var(--ch-coral);
+  border-color: var(--ch-coral);
+  color: #fff;
+  &:hover {
+    background: #9a330a;
+    border-color: #9a330a;
+  }
+}
+.ch-rc-tip {
+  color: #5d5876;
+  margin-bottom: 18px;
+}
+
+/* ---------- Sunday check-in + care alerts ---------- */
+.ch-ci .ch-pipe__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.ch-ci__day {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  b {
+    min-width: 210px;
+    text-align: center;
+  }
+}
+.ch-ci__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid #d8d3ea;
+  text-decoration: none;
+  font-size: 18px;
+  color: #1c1633;
+  &:hover {
+    border-color: var(--ch-violet);
+    color: var(--ch-violet);
+  }
+}
+.ch-care {
+  margin: 24px 0;
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: #fff4ed;
+  border: 1.5px solid #ffd2bd;
+}
+.ch-care__top {
+  h2 {
+    margin: 0;
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 24px;
+    color: var(--ch-coral);
+    span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      margin-left: 6px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: var(--ch-coral);
+      color: #fff;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 800;
+      vertical-align: middle;
+    }
+  }
+  p {
+    margin: 4px 0 14px;
+    color: #7a2e0e;
+  }
+}
+.ch-care__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.ch-care__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  text-decoration: none;
+  color: #1c1633;
+  border: 1px solid #ffd2bd;
+  span {
+    font-size: 13.5px;
+    color: #7a2e0e;
+  }
+  &:hover {
+    border-color: var(--ch-coral);
+  }
+}
+.ch-ci__board {
+  margin-top: 24px;
+}
+.ch-ci__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.ch-ci__search {
+  flex: 1 1 260px;
+  min-height: 46px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1.5px solid #d8d3ea;
+  font: inherit;
+  font-size: 16px;
+  &:focus {
+    outline: none;
+    border-color: var(--ch-violet);
+  }
+}
+.ch-ci__count {
+  margin: 0;
+  font-size: 16px;
+  b {
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    font-size: 28px;
+    color: var(--ch-green);
+    margin-right: 4px;
+  }
+}
+.ch-ci__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+.ch-ci__p {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #e2dcf3;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: #1c1633;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  &:hover {
+    border-color: var(--ch-violet);
+  }
+  &.is-here {
+    background: #ecfdf5;
+    border-color: #6fcf9f;
+  }
+  &[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+.ch-ci__tick {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #c9c3df;
+  font-weight: 800;
+  color: #fff;
+  .is-here & {
+    background: var(--ch-green);
+    border-color: var(--ch-green);
+  }
+}
+.ch-ci__who {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  b {
+    font-size: 15.5px;
+  }
+  small {
+    font-size: 13px;
+    color: #625b82;
+  }
+}
+
+/* ---------- Connect card QR ---------- */
+.ch-qr__stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 22px 0;
+  > a:not(.ch-btn) {
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e2dcf3;
+    text-decoration: none;
+    color: #5d5876;
+    b {
+      font-family: 'Anton', sans-serif;
+      font-weight: 400;
+      font-size: 24px;
+      color: var(--ch-violet);
+      margin-right: 6px;
+    }
+  }
+  button.ch-btn {
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+  }
+}
+.ch-qr__sheet {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  flex-wrap: wrap;
+  max-width: 980px;
+  padding: 48px;
+  border-radius: 28px;
+  background: linear-gradient(125deg, #eee8ff 0%, #f7f2ff 45%, #ffede2 100%);
+  border: 1px solid #e2dcf3;
+}
+.ch-qr__copy {
+  flex: 1 1 320px;
+  h2 {
+    margin: 6px 0 12px;
+    font-family: 'Anton', sans-serif;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 64px;
+    line-height: 0.95;
+    color: #1c1633;
+  }
+  p {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #5d5876;
+  }
+}
+.ch-qr__kicker {
+  margin-top: 16px !important;
+  font-weight: 800;
+  color: var(--ch-coral) !important;
+}
+.ch-qr__url {
+  font-weight: 800;
+  color: #1c1633 !important;
+}
+.ch-qr__code {
+  flex: none;
+  width: 300px;
+  height: 300px;
+  padding: 22px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 20px 50px rgba(28, 22, 51, 0.12);
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+@media print {
+  .ch-noprint,
+  .nav,
+  .app-header,
+  .template-default__nav-toggler-wrapper,
+  aside,
+  nav {
+    display: none !important;
+  }
+  .ch-qr__sheet {
+    box-shadow: none;
+    border: 2px solid #1c1633;
+  }
+}
+
+/* ---------- Side menu: extra tools ---------- */
+.ch-navlinks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 18px;
+  .ch-navpipe {
+    margin: 0;
+  }
+}
+.ch-navpipe--alt {
+  background: #fff;
+  color: #1c1633 !important;
+  border: 1.5px solid #e2dcf3;
+  &:hover {
+    background: #f3f0fb;
+    border-color: #5b3fd9;
+  }
+}
+.ch-tiles__h {
+  margin: 34px 0 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  font-size: 22px;
+  color: #1c1633;
 }

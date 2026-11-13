@@ -53,7 +53,7 @@ export function FormShell({ decor, kicker, title, lede, extra, aside, children }
         <div className="card">{children}</div>
         <div className="aside">{aside}</div>
       </div>
-      <div className="foot">Cedar Hill Church · demo site for EZEdit Mission. Cedar Hill is fictional.</div>
+      <div className="foot">Cedar Hill Church · demo site for Kingdom Kit. Cedar Hill is fictional.</div>
     </div>
   )
 }
@@ -74,6 +74,8 @@ export function TimesCard({ info, title = 'When we gather' }: { info: SiteInfo; 
 
 const LINKS = [
   ['/visit', 'Plan a visit'],
+  ['/connect', 'Fill out a connect card'],
+  ['/serve', 'Serve on a team'],
   ['/member', 'Become a member'],
   ['/salvation', 'I said yes to Jesus'],
   ['/prayer', 'Submit a prayer request'],

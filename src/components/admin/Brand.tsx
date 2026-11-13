@@ -18,9 +18,17 @@ export const Icon = () => (
 
 /** Pinned at the top of the side menu */
 export const PipelineLink = () => (
-  <a className="ch-navpipe" href="/admin/pipeline">
-    <span aria-hidden="true">▦</span> Pipeline board
-  </a>
+  <div className="ch-navlinks">
+    <a className="ch-navpipe" href="/admin/pipeline">
+      <span aria-hidden="true">▦</span> Pipeline board
+    </a>
+    <a className="ch-navpipe ch-navpipe--alt" href="/admin/check-in">
+      <span aria-hidden="true">✓</span> Sunday check-in
+    </a>
+    <a className="ch-navpipe ch-navpipe--alt" href="/admin/connect-card">
+      <span aria-hidden="true">▣</span> Connect card QR
+    </a>
+  </div>
 )
 
 /** Extra links at the bottom of the side menu */
@@ -30,7 +38,7 @@ export const ViewSiteLink = () => (
       View the website ↗
     </a>
     <span className="ch-powered">
-      Powered by <b>EZEdit Mission</b>
+      Powered by <b>Kingdom Kit</b>
     </span>
   </div>
 )
