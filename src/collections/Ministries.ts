@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { anyone, isStaff, isStaffField, staffOrOwnMinistry } from '../access'
+import { anyone, isStaff, isStaffField, staffOrOwnMinistry, hiddenForVolunteers } from '../access'
 import { logCollection } from '../lib/changeLog'
 
 export const Ministries: CollectionConfig = {
@@ -10,6 +10,7 @@ export const Ministries: CollectionConfig = {
     group: 'Website',
     useAsTitle: 'name',
     defaultColumns: ['name', 'meets', 'leaderName', 'order'],
+    hidden: hiddenForVolunteers,
     description: 'The ministries shown in "Find your people" on the homepage.',
   },
   defaultSort: 'order',

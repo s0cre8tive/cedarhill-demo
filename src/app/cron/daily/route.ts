@@ -2,10 +2,12 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { scanCare, sendReminders } from '@/lib/care'
 import { draftRecap } from '@/lib/recap'
+import { sendDailySummaries } from '@/lib/teamMail'
 
 /**
  * Every morning: sign-up reminders for tomorrow, care alerts for anyone missing three Sundays,
- * and (on Mondays) a fresh Sunday Recap draft. Vercel calls this on the schedule in vercel.json.
+ * (on Mondays) a fresh Sunday Recap draft, and on weekdays the team summary for people who asked
+ * for one email a day (Cathedral). Vercel calls this on the schedule in vercel.json.
  */
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -20,6 +22,7 @@ export async function GET(req: Request) {
   for (const [name, job] of [
     ['reminders', () => sendReminders(payload)],
     ['care', () => scanCare(payload)],
+    ['teamSummary', () => sendDailySummaries(payload)],
     [
       'recap',
       async () => {

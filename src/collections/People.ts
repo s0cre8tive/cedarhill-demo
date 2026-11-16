@@ -1,7 +1,8 @@
 import type { CollectionConfig, Where } from 'payload'
-import { isLoggedIn, isStaff } from '../access'
+import { isLoggedIn, isStaff, hasBackOffice, hiddenForVolunteers } from '../access'
 import { logChange } from '../lib/changeLog'
 import { STAGES, SOURCES, digits, stageLabel } from '../lib/crm'
+import { teamCommOn } from '../lib/package'
 
 /** Everyone the church is getting to know: guests, new believers, members. */
 export const People: CollectionConfig = {
@@ -12,6 +13,7 @@ export const People: CollectionConfig = {
     group: 'People',
     useAsTitle: 'fullName',
     defaultColumns: ['fullName', 'stage', 'tags', 'assignedTo', 'lastSeen'],
+    hidden: hiddenForVolunteers,
     listSearchableFields: ['fullName', 'email', 'phone'],
     description: 'Guests and members the church is following up with. Website forms add people here automatically.',
   },
@@ -22,7 +24,7 @@ export const People: CollectionConfig = {
       path: '/export',
       method: 'get',
       handler: async (req) => {
-        if (!req.user) return Response.json({ error: 'Please sign in.' }, { status: 401 })
+        if (!hasBackOffice(req.user)) return Response.json({ error: 'Please sign in.' }, { status: 401 })
         const url = new URL(req.url || '', 'http://x')
         const tag = url.searchParams.get('tag')
         const stage = url.searchParams.get('stage')
@@ -179,5 +181,9 @@ export const People: CollectionConfig = {
     },
     { name: 'fullName', type: 'text', admin: { hidden: true } },
     { name: 'phoneDigits', type: 'text', index: true, admin: { hidden: true } },
+    // Cathedral: notes from the team, with @mentions.
+    ...(teamCommOn()
+      ? [{ name: 'teamComments', type: 'ui' as const, admin: { position: 'sidebar' as const, components: { Field: '@/components/admin/CommentPanel#CommentPanel' } } }]
+      : []),
   ],
 }

@@ -2,6 +2,7 @@ import type { Payload } from 'payload'
 import { loadStarterContent } from './starter'
 import { loadStarterPeople } from './starterPeople'
 import { scanCare } from './care'
+import { clearTeam, loadStarterTeam } from './starterTeam'
 
 /**
  * Demo helpers for Cedar Hill (Kingdom Kit case study):
@@ -60,6 +61,8 @@ export async function ensureDemoUsers(payload: Payload, opts: { includePastor?: 
 /** Wipes the demo content and loads Cedar Hill's starter content again. Accounts you added are kept. */
 export async function resetDemo(payload: Payload, by: string) {
   const ctx = { skipLog: true }
+  // Team Communication points at people, events and logins, so it goes first of all.
+  await clearTeam(payload)
   // Order matters: things that point at photos/ministries go first.
   for (const collection of ['signups', 'attendance', 'recaps', 'serve-slots', 'events', 'sermons', 'leaders', 'inbox', 'follow-ups', 'people', 'tags', 'ministries', 'changes'] as const) {
     await payload.delete({ collection, where: { id: { exists: true } }, context: ctx })
@@ -76,6 +79,8 @@ export async function resetDemo(payload: Payload, by: string) {
   await ensureDemoUsers(payload)
   // People come last so their follow-ups can be assigned to Tasha and Marcus.
   await loadStarterPeople(payload)
+  // Cathedral: teams, team announcements, the Youth thread and notes on records.
+  await loadStarterTeam(payload)
   // The starter content adds its own "loaded" entry; replace it with who reset it.
   await payload.delete({ collection: 'changes', where: { source: { equals: 'system' } }, context: ctx })
   await payload.create({

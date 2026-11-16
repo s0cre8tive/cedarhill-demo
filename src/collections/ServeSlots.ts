@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { anyone, isStaff } from '../access'
+import { anyone, isStaff, hiddenForVolunteers } from '../access'
 import { logCollection } from '../lib/changeLog'
 
 export const SERVE_TEAMS = [
@@ -21,6 +21,7 @@ export const ServeSlots: CollectionConfig = {
     group: 'Sundays',
     useAsTitle: 'label',
     defaultColumns: ['label', 'spots', 'updatedAt'],
+    hidden: hiddenForVolunteers,
     description: 'Shifts people can sign up for on the Serve page. Everyone gets a reminder the day before.',
   },
   defaultSort: 'date',

@@ -53,3 +53,5 @@ node_modules/
 *.db
 *.db-journal
 /media
+# Team Communication attachments uploaded while testing on your computer
+/team-files

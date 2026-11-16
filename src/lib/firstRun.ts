@@ -3,6 +3,8 @@ import { loadStarterContent, LEAD_PASTORS } from './starter'
 import { loadPortrait } from './portraits'
 import { loadStarterSundays } from './starterSundays'
 import { scanCare } from './care'
+import { teamCommOn } from './package'
+import { loadStarterTeam } from './starterTeam'
 
 /**
  * Runs when the site starts. On a brand-new database it loads the Cedar Hill
@@ -27,6 +29,13 @@ async function upgradeDemo(payload: Payload) {
       await loadStarterSundays(payload)
       await scanCare(payload)
       payload.logger.info('Added the Sundays demo content (check-in, serve, recap)')
+    }
+  }
+  // Nov 2026: Team Communication (Cathedral). Demos set up before it get the sample teams once.
+  if (process.env.DEMO_RESET !== 'off' && teamCommOn()) {
+    const [teams, people] = await Promise.all([payload.count({ collection: 'teams' }), payload.count({ collection: 'people' })])
+    if (!teams.totalDocs && people.totalDocs && (await loadStarterTeam(payload))) {
+      payload.logger.info('Added the Team Communication demo content')
     }
   }
   // Oct 2026: "Pastor Renee Walker" became "Pastors Jacob & Renee Walker" with a couple photo.

@@ -1,4 +1,5 @@
 import React from 'react'
+import { teamCommOn } from '../../lib/package'
 
 /** Login-screen logo */
 export const Logo = () => (
@@ -16,20 +17,39 @@ export const Icon = () => (
   <img src="/cedarhill-logo.png" alt="Cedar Hill" width={30} height={30} style={{ display: 'block' }} />
 )
 
-/** Pinned at the top of the side menu */
-export const PipelineLink = () => (
-  <div className="ch-navlinks">
-    <a className="ch-navpipe" href="/admin/pipeline">
-      <span aria-hidden="true">▦</span> Pipeline board
-    </a>
-    <a className="ch-navpipe ch-navpipe--alt" href="/admin/check-in">
-      <span aria-hidden="true">✓</span> Sunday check-in
-    </a>
-    <a className="ch-navpipe ch-navpipe--alt" href="/admin/connect-card">
-      <span aria-hidden="true">▣</span> Connect card QR
-    </a>
-  </div>
-)
+/** Pinned at the top of the side menu. Volunteers (Cathedral) only get the team links. */
+export const PipelineLink = ({ user }: { user?: { role?: string } | null }) => {
+  const volunteer = user?.role === 'volunteer'
+  return (
+    <div className="ch-navlinks">
+      {!volunteer && (
+        <a className="ch-navpipe" href="/admin/pipeline">
+          <span aria-hidden="true">▦</span> Pipeline board
+        </a>
+      )}
+      {teamCommOn() && (
+        <>
+          <a className={`ch-navpipe${volunteer ? '' : ' ch-navpipe--alt'}`} href="/admin/teams">
+            <span aria-hidden="true">◎</span> Teams
+          </a>
+          <a className="ch-navpipe ch-navpipe--alt" href="/admin/notifications">
+            <span aria-hidden="true">◔</span> My notifications
+          </a>
+        </>
+      )}
+      {!volunteer && (
+        <>
+          <a className="ch-navpipe ch-navpipe--alt" href="/admin/check-in">
+            <span aria-hidden="true">✓</span> Sunday check-in
+          </a>
+          <a className="ch-navpipe ch-navpipe--alt" href="/admin/connect-card">
+            <span aria-hidden="true">▣</span> Connect card QR
+          </a>
+        </>
+      )}
+    </div>
+  )
+}
 
 /** Extra links at the bottom of the side menu */
 export const ViewSiteLink = () => (
@@ -49,7 +69,7 @@ export const LoginHelp = () => {
     return <p className="ch-loginhelp">Forgot your password or need access? Ask the church office.</p>
   return (
     <div className="ch-demo-logins">
-      <p className="ch-demo-logins__title">Trying the demo? Sign in as either of these.</p>
+      <p className="ch-demo-logins__title">Trying the demo? Sign in as {teamCommOn() ? 'any' : 'either'} of these.</p>
       <div className="ch-demo-logins__grid">
         <div>
           <strong>Tasha · Church office</strong>
@@ -61,9 +81,16 @@ export const LoginHelp = () => {
           <span>Posts youth events for approval</span>
           <code>youth@cedarhill.demo</code>
         </div>
+        {teamCommOn() && (
+          <div>
+            <strong>Priya · Kids volunteer</strong>
+            <span>Sees only her teams and announcements</span>
+            <code>volunteer@cedarhill.demo</code>
+          </div>
+        )}
       </div>
       <p className="ch-demo-logins__pw">
-        Password for both: <code>CedarHill2026</code>
+        Password for {teamCommOn() ? 'all three' : 'both'}: <code>CedarHill2026</code>
       </p>
       <p className="ch-demo-logins__fine">The demo resets itself every night, so feel free to change anything.</p>
     </div>

@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isLoggedIn, isStaff } from '../access'
+import { isLoggedIn, isStaff, hiddenForVolunteers } from '../access'
 
 /** Everyone who signed up for an event or a serve shift on the website. */
 export const Signups: CollectionConfig = {
@@ -10,6 +10,7 @@ export const Signups: CollectionConfig = {
     group: 'Sundays',
     useAsTitle: 'name',
     defaultColumns: ['name', 'what', 'guests', 'reminderSent', 'createdAt'],
+    hidden: hiddenForVolunteers,
     listSearchableFields: ['name', 'email', 'phone', 'what'],
     description: 'Event and serve sign-ups from the website. Reminders go out automatically the day before.',
   },

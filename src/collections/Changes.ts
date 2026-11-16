@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdmin, isStaff } from '../access'
+import { isAdmin, isStaff, hiddenForLeaders } from '../access'
 
 /** Read-only activity log: who changed what, and from which path. */
 export const Changes: CollectionConfig = {
@@ -11,7 +11,7 @@ export const Changes: CollectionConfig = {
     useAsTitle: 'summary',
     defaultColumns: ['summary', 'source', 'status', 'by', 'createdAt'],
     description: 'Every change to the website, from the dashboard (and, soon, from email), in one place.',
-    hidden: ({ user }) => (user as { role?: string } | null)?.role === 'leader',
+    hidden: hiddenForLeaders,
   },
   defaultSort: '-createdAt',
   access: {

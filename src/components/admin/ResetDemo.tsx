@@ -27,7 +27,7 @@ export function ResetDemo() {
         <h2>Reset the demo</h2>
         <p>
           Puts the website back to the Cedar Hill starter content: events, ministries, sermons, pastors, photos and service
-          times. It also clears the inbox and recent changes and resets the Tasha and Marcus logins to the demo password.
+          times. It also clears the inbox and recent changes and resets the demo logins to the demo password.
           Accounts you added are kept.
         </p>
         {step === 'working' && <p className="ch-reset__note">Resetting… this takes about a minute. Keep this page open.</p>}

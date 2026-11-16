@@ -80,6 +80,14 @@ export interface Config {
     'serve-slots': ServeSlot;
     signups: Signup;
     recaps: Recap;
+    'team-announcements': TeamAnnouncement;
+    teams: Team;
+    campuses: Campus;
+    'team-posts': TeamPost;
+    comments: Comment;
+    notifications: Notification;
+    'read-receipts': ReadReceipt;
+    'team-files': TeamFile;
     changes: Change;
     users: User;
     'payload-kv': PayloadKv;
@@ -114,6 +122,14 @@ export interface Config {
     'serve-slots': ServeSlotsSelect<false> | ServeSlotsSelect<true>;
     signups: SignupsSelect<false> | SignupsSelect<true>;
     recaps: RecapsSelect<false> | RecapsSelect<true>;
+    'team-announcements': TeamAnnouncementsSelect<false> | TeamAnnouncementsSelect<true>;
+    teams: TeamsSelect<false> | TeamsSelect<true>;
+    campuses: CampusesSelect<false> | CampusesSelect<true>;
+    'team-posts': TeamPostsSelect<false> | TeamPostsSelect<true>;
+    comments: CommentsSelect<false> | CommentsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    'read-receipts': ReadReceiptsSelect<false> | ReadReceiptsSelect<true>;
+    'team-files': TeamFilesSelect<false> | TeamFilesSelect<true>;
     changes: ChangesSelect<false> | ChangesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -302,11 +318,15 @@ export interface Person {
 export interface User {
   id: number;
   name: string;
-  role: 'admin' | 'editor' | 'leader';
+  role: 'admin' | 'editor' | 'leader' | 'volunteer';
   /**
    * Ministry leaders can only post events for this ministry.
    */
   ministry?: (number | null) | Ministry;
+  /**
+   * Mentions, replies and team announcements. "Off" also stops the Thursday rundown. You can always see everything under My notifications.
+   */
+  notify: 'instant' | 'daily' | 'off';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -558,6 +578,158 @@ export interface Recap {
   createdAt: string;
 }
 /**
+ * Notes for your staff and volunteers. They show at the top of everyone’s dashboard, never on the public website. You can see who has read each one.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-announcements".
+ */
+export interface TeamAnnouncement {
+  id: number;
+  title: string;
+  /**
+   * Keep it short. Two or three sentences.
+   */
+  body?: string | null;
+  link?: string | null;
+  /**
+   * A photo or PDF.
+   */
+  attachment?: (number | null) | TeamFile;
+  audience: 'all' | 'teams' | 'campus';
+  teams?: (number | Team)[] | null;
+  campus?: (number | null) | Campus;
+  /**
+   * Stays at the top of the board through this day.
+   */
+  pinnedUntil?: string | null;
+  author?: (number | null) | User;
+  reminderSentAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-files".
+ */
+export interface TeamFile {
+  id: number;
+  uploadedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * Who is on each team and who leads it. Each team gets its own space under Teams in the menu.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams".
+ */
+export interface Team {
+  id: number;
+  name: string;
+  description?: string | null;
+  leader?: (number | null) | User;
+  /**
+   * Leave empty if the team serves the whole church.
+   */
+  campus?: (number | null) | Campus;
+  /**
+   * Volunteers need a login first: add them under People → Staff with the Volunteer access level.
+   */
+  members?: (number | User)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * More than one location? Add each campus here. Teams and team announcements can then be filtered by campus.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campuses".
+ */
+export interface Campus {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-posts".
+ */
+export interface TeamPost {
+  id: number;
+  team?: (number | null) | Team;
+  author?: (number | null) | User;
+  body: string;
+  parent?: (number | null) | TeamPost;
+  attachment?: (number | null) | TeamFile;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments".
+ */
+export interface Comment {
+  id: number;
+  body: string;
+  author?: (number | null) | User;
+  mentions?: (number | User)[] | null;
+  relatedTo:
+    | {
+        relationTo: 'events';
+        value: number | Event;
+      }
+    | {
+        relationTo: 'people';
+        value: number | Person;
+      }
+    | {
+        relationTo: 'sermons';
+        value: number | Sermon;
+      };
+  recordKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: number;
+  recipient?: (number | null) | User;
+  type: 'mention' | 'reply' | 'announcement' | 'reminder';
+  title: string;
+  body?: string | null;
+  from?: string | null;
+  link?: string | null;
+  readAt?: string | null;
+  emailedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "read-receipts".
+ */
+export interface ReadReceipt {
+  id: number;
+  user?: (number | null) | User;
+  announcement?: (number | null) | TeamAnnouncement;
+  readAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Every change to the website, from the dashboard (and, soon, from email), in one place.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -649,6 +821,38 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'recaps';
         value: number | Recap;
+      } | null)
+    | ({
+        relationTo: 'team-announcements';
+        value: number | TeamAnnouncement;
+      } | null)
+    | ({
+        relationTo: 'teams';
+        value: number | Team;
+      } | null)
+    | ({
+        relationTo: 'campuses';
+        value: number | Campus;
+      } | null)
+    | ({
+        relationTo: 'team-posts';
+        value: number | TeamPost;
+      } | null)
+    | ({
+        relationTo: 'comments';
+        value: number | Comment;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: number | Notification;
+      } | null)
+    | ({
+        relationTo: 'read-receipts';
+        value: number | ReadReceipt;
+      } | null)
+    | ({
+        relationTo: 'team-files';
+        value: number | TeamFile;
       } | null)
     | ({
         relationTo: 'changes';
@@ -943,6 +1147,117 @@ export interface RecapsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-announcements_select".
+ */
+export interface TeamAnnouncementsSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  link?: T;
+  attachment?: T;
+  audience?: T;
+  teams?: T;
+  campus?: T;
+  pinnedUntil?: T;
+  author?: T;
+  reminderSentAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teams_select".
+ */
+export interface TeamsSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  leader?: T;
+  campus?: T;
+  members?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campuses_select".
+ */
+export interface CampusesSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-posts_select".
+ */
+export interface TeamPostsSelect<T extends boolean = true> {
+  team?: T;
+  author?: T;
+  body?: T;
+  parent?: T;
+  attachment?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "comments_select".
+ */
+export interface CommentsSelect<T extends boolean = true> {
+  body?: T;
+  author?: T;
+  mentions?: T;
+  relatedTo?: T;
+  recordKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  recipient?: T;
+  type?: T;
+  title?: T;
+  body?: T;
+  from?: T;
+  link?: T;
+  readAt?: T;
+  emailedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "read-receipts_select".
+ */
+export interface ReadReceiptsSelect<T extends boolean = true> {
+  user?: T;
+  announcement?: T;
+  readAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "team-files_select".
+ */
+export interface TeamFilesSelect<T extends boolean = true> {
+  uploadedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "changes_select".
  */
 export interface ChangesSelect<T extends boolean = true> {
@@ -963,6 +1278,7 @@ export interface UsersSelect<T extends boolean = true> {
   name?: T;
   role?: T;
   ministry?: T;
+  notify?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

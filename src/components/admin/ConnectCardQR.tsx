@@ -12,6 +12,8 @@ export async function ConnectCardQR({ initPageResult, params, searchParams }: Ad
   const { payload, user } = req
   const admin = payload.config.routes.admin
   if (!user) redirect(`${admin}/login?redirect=${encodeURIComponent(`${admin}/connect-card`)}`)
+  // Volunteers only have Team Communication.
+  if ((user as unknown as { role?: string }).role === 'volunteer') redirect(admin)
 
   const h = await headers()
   const host = h.get('x-forwarded-host') || h.get('host') || ''
@@ -36,6 +38,8 @@ export async function ConnectCardQR({ initPageResult, params, searchParams }: Ad
       searchParams={searchParams}
       user={user ?? undefined}
       visibleEntities={visibleEntities}
+      // Keeps the header bell (Cathedral) on this page too.
+      viewActions={payload.config.admin?.components?.actions}
     >
       <div className="ch-pipe ch-qr">
         <div className="ch-pipe__head ch-noprint">

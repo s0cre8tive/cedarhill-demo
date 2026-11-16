@@ -1,6 +1,6 @@
 import type { Access, FieldAccess, PayloadRequest, Where } from 'payload'
 
-export type Role = 'admin' | 'editor' | 'leader'
+export type Role = 'admin' | 'editor' | 'leader' | 'volunteer'
 type StaffUser = {
   id: string | number
   name?: string
@@ -17,7 +17,14 @@ export const ministryOf = (req: PayloadRequest) => {
 }
 
 export const anyone: Access = () => true
-export const isLoggedIn: Access = ({ req }) => Boolean(req.user)
+/** Anyone with a login, including volunteers. Only Team Communication uses this. */
+export const isSignedIn: Access = ({ req }) => Boolean(req.user)
+/**
+ * Signed in with back-office access: Pastor / Admin, Office and Ministry Leaders.
+ * Volunteers sign in too, but they only get Team Communication, so they never pass this.
+ */
+export const isLoggedIn: Access = ({ req }) => Boolean(req.user) && roleOf(req) !== 'volunteer'
+export const hasBackOffice = (user: unknown) => Boolean(user) && (user as StaffUser)?.role !== 'volunteer'
 export const isAdmin: Access = ({ req }) => roleOf(req) === 'admin'
 /** Pastor / Admin and Office / Website Editor */
 export const isStaff: Access = ({ req }) => roleOf(req) === 'admin' || roleOf(req) === 'editor'
@@ -46,5 +53,11 @@ export const staffOrOwnMinistry =
     return false
   }
 
-/** Hide a collection from the side menu for ministry leaders. */
-export const hiddenForLeaders = ({ user }: { user: unknown }) => (user as StaffUser)?.role === 'leader'
+/** Hide a collection from the side menu for ministry leaders (and volunteers, who see even less). */
+export const hiddenForLeaders = ({ user }: { user: unknown }) => {
+  const role = (user as StaffUser)?.role
+  return role === 'leader' || role === 'volunteer'
+}
+
+/** Hide a collection from the side menu for volunteers. */
+export const hiddenForVolunteers = ({ user }: { user: unknown }) => (user as StaffUser)?.role === 'volunteer'
