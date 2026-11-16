@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { anyone, isLoggedIn, isStaff } from '../access'
+import { anyone, isLoggedIn, isStaff, hiddenForVolunteers } from '../access'
 import { logCollection } from '../lib/changeLog'
 
 export const PHOTO_SPOTS = [
@@ -18,6 +18,7 @@ export const Media: CollectionConfig = {
     group: 'Website',
     useAsTitle: 'alt',
     defaultColumns: ['filename', 'alt', 'spot', 'updatedAt'],
+    hidden: hiddenForVolunteers,
     description:
       'Upload a photo and choose where it should show. The newest photo for each spot is the one people see.',
   },

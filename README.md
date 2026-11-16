@@ -24,13 +24,15 @@ npm run dev
 
 Open http://localhost:3000 and http://localhost:3000/admin
 
-**Demo logins** (password for all three: `CedarHill2026`)
+**Demo logins** (password for all of them: `CedarHill2026`)
 
 | Who | Email | What they can do |
 | --- | --- | --- |
 | Pastor Renee Walker — Pastor / Admin | pastor@cedarhill.demo | Everything, including private prayer requests and adding staff |
 | Tasha Bennett — Office / Website Editor | office@cedarhill.demo | Edit the site, approve ministry posts, work the inbox (not "Pastors only" prayers) |
 | Marcus Reed — Ministry Leader (Cedar Youth) | youth@cedarhill.demo | Post Cedar Youth events (held for approval), update the Cedar Youth details, upload photos |
+
+| Priya Nair — Volunteer (Kids team) · Cathedral only | volunteer@cedarhill.demo | Team Communication only: her team's space and team announcements. Nothing else in the dashboard |
 
 The seed also has Marcus post a **Youth Lock-In** so there's something waiting in the approval queue.
 
@@ -57,7 +59,44 @@ The seed also has Marcus post a **Youth Lock-In** so there's something waiting i
 | Tags | Groups like Youth, Worship or Volunteer. All staff can see and update People; only the Pastor / Admin and Office can delete |
 | Reset demo | Pastor / Admin only, at the bottom of the dashboard home. Puts all starter content back, clears the inbox and log, and resets the Tasha and Marcus logins to `CedarHill2026`. Accounts you added are kept. Set `DEMO_RESET=off` to hide it on a real church site |
 | Nightly reset | Vercel runs `/cron/reset-demo` every night (see `vercel.json`). Needs a `CRON_SECRET` environment variable in Vercel |
-| Demo help | The login screen lists the two demo logins, and Tasha and Marcus get a 3-step "Demo tour" on the dashboard home |
+| Demo help | The login screen lists the demo logins, and Tasha and Marcus get a 3-step "Demo tour" on the dashboard home |
+
+---
+
+## Team Communication (Cathedral package)
+
+*"Your whole team on the same page, in the same place you already run the church."*
+
+A staff and volunteer area inside the dashboard, so the team stops running ministry out of group texts.
+It is part of the **Cathedral** package. The package is one setting in Vercel:
+
+| `KIT_PACKAGE` | What you get |
+| --- | --- |
+| `cathedral` (or left empty) | Everything, including Team Communication |
+| `sanctuary` or `chapel` | The dashboard exactly as it was. Team Communication doesn't show and can't be reached |
+
+| Area | What it does |
+| --- | --- |
+| Team announcements | The notice board at the top of the dashboard (not the public Announcement Banner). Title, short note, optional link or attachment, optional "pin until" date. Send to everyone, one or more teams, or one campus. The author sees "Seen by 9 of 14", can open who hasn't read it, and can send **one** reminder. "Read by all" turns green |
+| Teams | `/admin/teams`: one space per team with posts and replies, newest first. A calm message board, not live chat. Staff manage who's on each team under **Manage teams** |
+| Team notes on records | A notes panel on the right of every Event, Person (guest) and Sermon. Type `@` to tag a teammate: they get a notification that links straight back to the record |
+| My notifications | The bell in the header shows the unread count (it checks when a page loads, when you come back to the tab, and once a minute). `/admin/notifications` lists mentions, replies, announcements and reminders |
+| Emails | Mentions, announcements and reminders are emailed through Resend. Each person chooses **Right away**, **Once a day** or **Off** under their account (`/admin/account`), and every email links there. The once-a-day summary goes out weekday mornings with `/cron/daily` |
+| Weekly rundown | Thursday afternoon (Eastern) with `/cron/weekly`: this Sunday's events, announcements they haven't read, and anything waiting on them, with one button back to the dashboard |
+| Campus filter | Add campuses under **Campuses**. The filter on the board and on Teams only appears once there are two or more |
+| Volunteer access level | A fourth access level. Volunteers see the teams they belong to and team announcements, can reply and mark as read, and get nothing else in the dashboard |
+
+**Who can do what:** volunteers and ministry leaders read and post only in their own teams. Pastor / Admin and Office see every team.
+Only Pastor / Admin and Office can post an announcement to everyone; a ministry leader can post one to the teams they lead.
+People edit and remove only their own posts; a Pastor / Admin can remove any.
+
+**In the demo:** six teams (Church Office, Youth, Worship, Kids, Guest Care, Facilities), three announcements (one pinned, one read by all,
+one read by 5 of 12), a Youth thread about the winter retreat, a note on a guest that tags Marcus, and a note on Sunday's event.
+Marcus signs in to 2 unread; Tasha sees the read counts. It all comes back with the nightly reset.
+Demo logins use made-up addresses (`…@cedarhill.demo`), so the site never sends them real email.
+
+**Later, not in this version:** live chat and typing indicators, text messages (SMS), a phone app, video or voice,
+a file library, volunteer scheduling, and messages to the whole congregation (that's Guest Care and the public site).
 
 ---
 

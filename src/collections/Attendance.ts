@@ -1,5 +1,5 @@
 import type { CollectionConfig, PayloadRequest } from 'payload'
-import { isLoggedIn, isStaff } from '../access'
+import { isLoggedIn, isStaff, hiddenForVolunteers } from '../access'
 
 /** Keeps "Last at church" on each person current, so care alerts know who's been missing. */
 async function refreshLastSeen(req: PayloadRequest, person: unknown) {
@@ -21,6 +21,7 @@ export const Attendance: CollectionConfig = {
     group: 'Sundays',
     useAsTitle: 'date',
     defaultColumns: ['person', 'date', 'how'],
+    hidden: hiddenForVolunteers,
     description: 'Who was at church each week. Use Sunday check-in in the menu to mark people present; connect cards check people in on their own.',
   },
   defaultSort: '-date',

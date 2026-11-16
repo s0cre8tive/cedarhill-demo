@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
-import { anyone, ministryOf, roleOf, staffOrOwnMinistry, isStaffField } from '../access'
+import { anyone, isLoggedIn, ministryOf, roleOf, staffOrOwnMinistry, isStaffField, hiddenForVolunteers } from '../access'
 import { logCollection } from '../lib/changeLog'
+import { teamCommOn } from '../lib/package'
 
 export const Events: CollectionConfig = {
   slug: 'events',
@@ -10,13 +11,14 @@ export const Events: CollectionConfig = {
     group: 'Website',
     useAsTitle: 'title',
     defaultColumns: ['title', 'date', 'ministry', 'approval'],
+    hidden: hiddenForVolunteers,
     description:
       'Upcoming events show on the homepage and disappear after they pass. Events added by ministry leaders wait for office approval.',
   },
   defaultSort: 'date',
   access: {
     read: anyone,
-    create: ({ req }) => Boolean(roleOf(req)),
+    create: isLoggedIn,
     update: staffOrOwnMinistry(),
     delete: staffOrOwnMinistry(),
   },
@@ -115,5 +117,9 @@ export const Events: CollectionConfig = {
       access: { update: isStaffField },
     },
     { name: 'submittedBy', label: 'Added by', type: 'text', admin: { position: 'sidebar', readOnly: true } },
+    // Cathedral: notes from the team, with @mentions.
+    ...(teamCommOn()
+      ? [{ name: 'teamComments', type: 'ui' as const, admin: { position: 'sidebar' as const, components: { Field: '@/components/admin/CommentPanel#CommentPanel' } } }]
+      : []),
   ],
 }

@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isLoggedIn } from '../access'
+import { isLoggedIn, hiddenForVolunteers } from '../access'
 import { logChange } from '../lib/changeLog'
 
 /** "Call Sarah by Friday": small tasks tied to a person. */
@@ -11,6 +11,7 @@ export const FollowUps: CollectionConfig = {
     group: 'People',
     useAsTitle: 'title',
     defaultColumns: ['title', 'person', 'assignedTo', 'due', 'done'],
+    hidden: hiddenForVolunteers,
     description: 'Calls, texts and visits to make. Open ones due today show on your dashboard.',
   },
   defaultSort: 'due',

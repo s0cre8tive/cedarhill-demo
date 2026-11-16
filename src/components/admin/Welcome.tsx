@@ -4,6 +4,8 @@ import { ResetDemo } from './ResetDemo'
 import { emailService } from '../../lib/emailList'
 import { missingPeople } from '../../lib/care'
 import { openServeShifts } from '../../lib/recap'
+import { teamCommOn } from '../../lib/package'
+import { TeamBoard } from './TeamBoard'
 
 type Props = { payload: Payload; user?: TypedUser | null }
 type U = { name?: string; role?: string; ministry?: unknown } | null
@@ -50,6 +52,35 @@ export const Welcome = async ({ payload, user }: Props) => {
   const u = user as unknown as U
   const first = String(u?.name ?? '').split(' ')[0]
   const isLeader = u?.role === 'leader'
+
+  // Volunteers (Cathedral) get Team Communication and nothing else.
+  if (u?.role === 'volunteer') {
+    return (
+      <section className="ch-welcome">
+        <div className="ch-welcome__head">
+          <div>
+            <p className="ch-kicker">Cedar Hill Church · Team</p>
+            <h1>
+              {greeting()}
+              {first ? `, ${first}` : ''}.
+            </h1>
+            <p className="ch-welcome__sub">Here’s what your team needs you to know.</p>
+          </div>
+          <a className="ch-btn" href={`${admin}/teams`}>
+            Go to my teams
+          </a>
+        </div>
+        {teamCommOn() && user ? (
+          <TeamBoard payload={payload} user={user} />
+        ) : (
+          <p className="ch-team__empty">Team Communication isn’t turned on for this site. Ask the church office.</p>
+        )}
+        <p className="ch-hint">
+          Tip: choose how often we email you under <a href={`${admin}/account`}>your account</a>.
+        </p>
+      </section>
+    )
+  }
   const today = new Date(new Date().setHours(0, 0, 0, 0)).toISOString()
 
   let newCount = 0
@@ -301,6 +332,8 @@ export const Welcome = async ({ payload, user }: Props) => {
           View the website ↗
         </a>
       </div>
+
+      {teamCommOn() && user && <TeamBoard payload={payload} user={user} />}
 
       {process.env.DEMO_RESET !== 'off' && u?.role !== 'admin' && (
         <div className="ch-tour">

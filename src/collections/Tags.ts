@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isLoggedIn, isStaff } from '../access'
+import { isLoggedIn, isStaff, hiddenForVolunteers } from '../access'
 
 export const Tags: CollectionConfig = {
   slug: 'tags',
@@ -8,6 +8,7 @@ export const Tags: CollectionConfig = {
     hideAPIURL: true,
     group: 'People',
     useAsTitle: 'name',
+    hidden: hiddenForVolunteers,
     description: 'Groups for People, like Youth, Worship or Volunteer. Add as many as you like.',
   },
   defaultSort: 'name',

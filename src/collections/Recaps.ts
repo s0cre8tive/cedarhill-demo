@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isStaff } from '../access'
+import { isStaff, hasBackOffice, hiddenForVolunteers } from '../access'
 import { draftRecap, sendRecap } from '../lib/recap'
 import { userOf } from '../access'
 
@@ -12,12 +12,13 @@ export const Recaps: CollectionConfig = {
     group: 'Sundays',
     useAsTitle: 'subject',
     defaultColumns: ['subject', 'status', 'sentAt'],
+    hidden: hiddenForVolunteers,
     description: 'A draft is ready every Monday morning. Add a note, press Preview, then Send.',
   },
   defaultSort: '-weekOf',
   access: {
     // Anyone can read a sent recap (it has a web page). Drafts are staff only.
-    read: ({ req }) => (req.user ? true : { status: { equals: 'sent' } }),
+    read: ({ req }) => (hasBackOffice(req.user) ? true : { status: { equals: 'sent' } }),
     create: isStaff,
     update: isStaff,
     delete: isStaff,
@@ -27,7 +28,7 @@ export const Recaps: CollectionConfig = {
       path: '/draft',
       method: 'post',
       handler: async (req) => {
-        if (!req.user) return Response.json({ error: 'Please sign in.' }, { status: 401 })
+        if (!hasBackOffice(req.user)) return Response.json({ error: 'Please sign in.' }, { status: 401 })
         const doc = await draftRecap(req.payload, { force: true })
         return Response.json({ id: doc.id })
       },

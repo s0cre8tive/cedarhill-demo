@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { anyone, isStaff, hiddenForLeaders } from '../access'
 import { logCollection } from '../lib/changeLog'
+import { teamCommOn } from '../lib/package'
 
 export const Sermons: CollectionConfig = {
   slug: 'sermons',
@@ -66,5 +67,9 @@ export const Sermons: CollectionConfig = {
         },
       ],
     },
+    // Cathedral: notes from the team, with @mentions.
+    ...(teamCommOn()
+      ? [{ name: 'teamComments', type: 'ui' as const, admin: { position: 'sidebar' as const, components: { Field: '@/components/admin/CommentPanel#CommentPanel' } } }]
+      : []),
   ],
 }

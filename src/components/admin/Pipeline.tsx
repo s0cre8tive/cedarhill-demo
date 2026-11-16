@@ -13,6 +13,8 @@ export async function Pipeline({ initPageResult, params, searchParams }: AdminVi
   const { payload, user } = req
   const admin = payload.config.routes.admin
   if (!user) redirect(`${admin}/login?redirect=${encodeURIComponent(`${admin}/pipeline`)}`)
+  // Volunteers only have Team Communication.
+  if ((user as unknown as { role?: string }).role === 'volunteer') redirect(admin)
 
   const [people, tags, open] = await Promise.all([
     payload.find({ collection: 'people', limit: 1000, depth: 1, sort: '-updatedAt', user, overrideAccess: false }),
@@ -56,6 +58,8 @@ export async function Pipeline({ initPageResult, params, searchParams }: AdminVi
       searchParams={searchParams}
       user={user ?? undefined}
       visibleEntities={visibleEntities}
+      // Keeps the header bell (Cathedral) on this page too.
+      viewActions={payload.config.admin?.components?.actions}
     >
       <div className="ch-pipe">
         <div className="ch-pipe__head">

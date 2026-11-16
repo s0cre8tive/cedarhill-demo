@@ -1,5 +1,14 @@
-import { APIError, type CollectionConfig } from 'payload'
-import { isAdmin, isAdminField, isAdminOrSelf, isLoggedIn } from '../access'
+import { APIError, type Access, type CollectionConfig } from 'payload'
+import { isAdmin, isAdminField, isAdminOrSelf, roleOf, userOf } from '../access'
+import { teamCommOn } from '../lib/package'
+
+/** Staff see each other's names. A volunteer only sees their own account. */
+const readUsers: Access = ({ req }) => {
+  const user = userOf(req)
+  if (!user) return false
+  if (roleOf(req) !== 'volunteer') return true
+  return { id: { equals: user.id } }
+}
 
 /**
  * Staff who can sign in at /admin.
@@ -8,6 +17,8 @@ import { isAdmin, isAdminField, isAdminOrSelf, isLoggedIn } from '../access'
  *   (except pastors-only prayers).
  * - Ministry Leader: posts events for their own ministry (held for approval) and updates
  *   their ministry's details. No inbox access.
+ * - Volunteer (Cathedral): Team Communication only. They see the teams they belong to and
+ *   team announcements, and nothing else in the dashboard.
  */
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -33,7 +44,7 @@ export const Users: CollectionConfig = {
   },
   access: {
     // Staff can see each other's names so they can assign follow-ups.
-    read: isLoggedIn,
+    read: readUsers,
     create: isAdmin,
     update: isAdminOrSelf,
     delete: isAdmin,
@@ -84,6 +95,8 @@ export const Users: CollectionConfig = {
         { label: 'Pastor / Admin (sees everything)', value: 'admin' },
         { label: 'Office / Website Editor', value: 'editor' },
         { label: 'Ministry Leader (own ministry only)', value: 'leader' },
+        // Only offered on Cathedral, where Team Communication is on.
+        ...(teamCommOn() ? [{ label: 'Volunteer (their teams only)', value: 'volunteer' }] : []),
       ],
       access: { update: isAdminField },
       admin: { position: 'sidebar', isClearable: false },
@@ -98,6 +111,24 @@ export const Users: CollectionConfig = {
         position: 'sidebar',
         condition: (data) => data?.role === 'leader',
         description: 'Ministry leaders can only post events for this ministry.',
+      },
+    },
+    {
+      name: 'notify',
+      label: 'Email me about team updates',
+      type: 'select',
+      required: true,
+      defaultValue: 'instant',
+      options: [
+        { label: 'Right away', value: 'instant' },
+        { label: 'Once a day, in one summary', value: 'daily' },
+        { label: 'Off (I’ll check the dashboard)', value: 'off' },
+      ],
+      admin: {
+        isClearable: false,
+        hidden: !teamCommOn(),
+        description:
+          'Mentions, replies and team announcements. "Off" also stops the Thursday rundown. You can always see everything under My notifications.',
       },
     },
   ],

@@ -22,6 +22,14 @@ import { Attendance } from './collections/Attendance'
 import { ServeSlots } from './collections/ServeSlots'
 import { Signups } from './collections/Signups'
 import { Recaps } from './collections/Recaps'
+import { Campuses } from './collections/Campuses'
+import { Teams } from './collections/Teams'
+import { TeamAnnouncements } from './collections/TeamAnnouncements'
+import { TeamPosts } from './collections/TeamPosts'
+import { Comments } from './collections/Comments'
+import { Notifications } from './collections/Notifications'
+import { ReadReceipts } from './collections/ReadReceipts'
+import { TeamFiles } from './collections/TeamFiles'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { ChurchInfo } from './globals/ChurchInfo'
 import { Announcement } from './globals/Announcement'
@@ -58,12 +66,17 @@ export default buildConfig({
         Icon: '@/components/admin/Brand#Icon',
       },
       beforeDashboard: ['@/components/admin/Welcome#Welcome'],
+      // Cathedral: the bell with the unread count, on every page.
+      actions: ['@/components/admin/Bell#Bell'],
       beforeNavLinks: ['@/components/admin/Brand#PipelineLink'],
       afterNavLinks: ['@/components/admin/Brand#ViewSiteLink'],
       views: {
         pipeline: { Component: '@/components/admin/Pipeline#Pipeline', path: '/pipeline' },
         checkin: { Component: '@/components/admin/CheckIn#CheckIn', path: '/check-in' },
         connectCard: { Component: '@/components/admin/ConnectCardQR#ConnectCardQR', path: '/connect-card' },
+        // Cathedral: team spaces (/admin/teams and /admin/teams/:id) and My notifications.
+        teams: { Component: '@/components/admin/Teams#Teams', path: '/teams' },
+        notifications: { Component: '@/components/admin/Notifications#Notifications', path: '/notifications' },
       },
       afterLogin: ['@/components/admin/Brand#LoginHelp'],
     },
@@ -73,7 +86,7 @@ export default buildConfig({
   },
   // Nav order = the order staff see in the side menu.
   globals: [Announcement, ChurchInfo],
-  collections: [Events, Ministries, Sermons, Media, Leaders, People, FollowUps, Tags, Inbox, Attendance, ServeSlots, Signups, Recaps, Changes, Users],
+  collections: [Events, Ministries, Sermons, Media, Leaders, People, FollowUps, Tags, Inbox, Attendance, ServeSlots, Signups, Recaps, TeamAnnouncements, Teams, Campuses, TeamPosts, Comments, Notifications, ReadReceipts, TeamFiles, Changes, Users],
   // Reminders, confirmations and the Sunday Recap. Turns on when RESEND_API_KEY and EMAIL_FROM are set.
   email:
     process.env.RESEND_API_KEY && process.env.EMAIL_FROM
@@ -121,7 +134,7 @@ export default buildConfig({
     // Online photo storage. Turns on automatically when Vercel Blob is connected.
     vercelBlobStorage({
       enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      collections: { media: true },
+      collections: { media: true, 'team-files': true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
       clientUploads: true, // lets staff upload big phone photos
     }),
